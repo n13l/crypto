@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_PRF_TLS1) += tls1.o
+endif
+obj-$(CONFIG_CRYPTO_PRF_TLS1_DYN) += prf-tls1.o
+prf-tls1-objs := module.o

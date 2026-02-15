@@ -1,0 +1,29 @@
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64) += sha256-x86_64.o sha512-x86_64.o
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64) += sha2-aws-x86_64.o
+sha2-aws-x86_64-objs := sha256-x86_64.o sha512-x86_64.o
+
+AFLAGS_sha256-x86_64.o := -I$(srctree)/vendor/aws-lc/include
+AFLAGS_sha512-x86_64.o := -I$(srctree)/vendor/aws-lc/include
+
+#
+# The block glue, one object, and only where the object is wanted.
+#
+# The glue is written once for the whole family and compiled against this
+# backend: modules/digest/sha2-arch/arch.c is the include of built-in.h and
+# nothing else, and the -I below is what makes that this backend's built-in.h
+# (the same arrangement as modules/cipher/aes-ccm/ccm.c, a mode written once and
+# compiled against each backend's block cipher).
+#
+# Optimizing for size that is where the glue is compiled and every caller of a
+# digest calls across the boundary; optimizing for speed built-in.h carries the
+# bodies into each caller, this object would hold nothing, and it is not built.
+# modules/digest/sha2-arch/decl.h says the rest of it.
+#
+SHA2_ARCH := $(srctree)/$(CRYPTO_DIR)/modules/digest/sha2-arch
+
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64) += arch.o
+$(obj)/arch.o: $(SHA2_ARCH)/arch.c FORCE
+	$(call if_changed_rule,cc_o_c)
+CFLAGS_arch.o := -I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha2-aws-x86_64
+endif

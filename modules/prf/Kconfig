@@ -1,0 +1,144 @@
+menu "PRF algorithms"
+
+config CRYPTO_PRF_SHA1
+	bool
+
+config CRYPTO_PRF_SHA2
+	bool
+
+config CRYPTO_PRF_SHA3
+	bool
+
+choice
+	prompt "PRF-SHA-1 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA1_SEL_Y
+	help
+	  Enable or disable PRF-SHA-1-160.
+
+config CRYPTO_PRF_SHA1_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-1 support.
+
+config CRYPTO_PRF_SHA1_SEL_Y
+	bool "PRF-SHA-1"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA1
+	help
+	  PRF-SHA-1-160 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-1 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA1_DYN
+	tristate "PRF-SHA-1"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-1-160 pseudo-random function.
+
+choice
+	prompt "PRF-SHA-2 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA2_SEL_Y
+	help
+	  Enable or disable PRF-SHA-224/256/384/512.
+
+config CRYPTO_PRF_SHA2_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-2 support.
+
+config CRYPTO_PRF_SHA2_SEL_Y
+	bool "PRF-SHA-2"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA2
+	help
+	  PRF-SHA-224/256/384/512 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-2 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA2_DYN
+	tristate "PRF-SHA-2"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-224/256/384/512 pseudo-random function.
+
+choice
+	prompt "PRF-SHA-3 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA3_SEL_Y
+	help
+	  Enable or disable PRF-SHA-3-224/256/384/512.
+
+config CRYPTO_PRF_SHA3_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-3 support.
+
+config CRYPTO_PRF_SHA3_SEL_Y
+	bool "PRF-SHA-3"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA3
+	help
+	  PRF-SHA-3-224/256/384/512 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-3 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA3_DYN
+	tristate "PRF-SHA-3"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-3-224/256/384/512 pseudo-random function.
+
+#
+# The TLS 1.0/1.1 PRF, which is not a P_hash: P_MD5 exclusive-ored with
+# P_SHA-1 over halves of the secret. It is the whole key schedule of those two
+# versions -- master secret, key block and Finished all come out of it -- and
+# nothing at TLS 1.2 or above touches it. Off by default, and needs MD5.
+#
+
+config CRYPTO_PRF_TLS1
+	bool "PRF-TLS-1.0/1.1 (P_MD5 XOR P_SHA-1)"
+	depends on !MODULES
+	default n
+	select CRYPTO_MD5
+	select CRYPTO_PRF_SHA1
+	help
+	  The pseudo-random function of TLS 1.0 and TLS 1.1 (RFC 2246 sec 5):
+	  the secret is split in half and expanded twice, once under HMAC-MD5
+	  and once under HMAC-SHA-1, and the two streams are exclusive-ored.
+
+	  This is what derives a TLS 1.0/1.1 master secret, key block and
+	  verify_data. TLS 1.2 replaced it with a single P_hash named by the
+	  suite (CRYPTO_PRF_SHA2), so a build that reads nothing older than
+	  TLS 1.2 has no use for it.
+
+	  If unsure, say N.
+
+comment "PRF-TLS-1.0/1.1 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_TLS1_DYN
+	tristate "PRF-TLS-1.0/1.1 (P_MD5 XOR P_SHA-1)"
+	depends on MODULES
+	default n
+	help
+	  The TLS 1.0/1.1 PRF as a loadable module. See CRYPTO_PRF_TLS1.
+
+	  Needs CRYPTO_MD5_DYN and CRYPTO_PRF_SHA1_DYN, and selects neither:
+	  see the same note under CRYPTO_HMAC_MD5_DYN.
+	  configs/insecure.config asks for all of them.
+
+endmenu

@@ -1,0 +1,258 @@
+menu "TLS key-exchange groups (ECC / PQ)"
+
+#
+# TLS supported groups as per-group modules, following the digest subsystem's
+# layout: a portable generic-C fallback plus an aws-lc accelerated backend
+# (s2n-bignum assembly compiled directly, no OpenSSL/libcrypto). A separate
+# identification module registers metadata for the groups that do not yet have
+# a dedicated compute module, so the passive dissector can still name every
+# group and size its key_share.
+#
+config CRYPTO_GROUP
+	bool
+
+#
+# Group identification (metadata) for all groups without a compute module:
+# secp256r1/384r1/521r1, x448, ffdhe*, and the post-quantum hybrids.
+#
+config CRYPTO_GROUP_META
+	bool
+
+config CRYPTO_GROUP_SEL_META
+	bool "TLS group identification table (ECC / FFDHE / PQ)"
+	depends on !MODULES
+	default y
+	select CRYPTO_GROUP_META
+	select CRYPTO_GROUP
+	help
+	  Register identification metadata (id, name, category, key_share size)
+	  for every negotiable group without a dedicated key-exchange module.
+	  Enables the dissector to name groups seen in supported_groups /
+	  key_share. No curve arithmetic; no OpenSSL dependency.
+
+#
+# X25519 (RFC 7748) key exchange.
+#
+config CRYPTO_GROUP_X25519
+	bool
+
+config CRYPTO_GROUP_X25519_GENERIC
+	bool
+	select CRYPTO_GROUP_X25519
+	select CRYPTO_GROUP
+
+config CRYPTO_GROUP_X25519_AWS_X86_64
+	bool
+	select CRYPTO_GROUP_X25519
+	select CRYPTO_GROUP
+
+config CRYPTO_GROUP_X25519_AWS_ARMV8
+	bool
+	select CRYPTO_GROUP_X25519
+	select CRYPTO_GROUP
+
+choice
+	prompt "X25519 implementation"
+	depends on !MODULES
+	default CRYPTO_GROUP_X25519_SEL_AWS_X86_64 if CC_CPU_ACCELERATION && SRCARCH = "x86"
+	default CRYPTO_GROUP_X25519_SEL_AWS_ARMV8 if CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	default CRYPTO_GROUP_X25519_SEL_GENERIC
+	help
+	  Select the X25519 key-exchange implementation. Only one can be active
+	  at a time.
+
+config CRYPTO_GROUP_X25519_SEL_N
+	bool "None"
+	help
+	  Do not include X25519 key exchange (identification only, if the group
+	  table above is enabled).
+
+config CRYPTO_GROUP_X25519_SEL_GENERIC
+	bool "X25519 (generic C, fiat)"
+	select CRYPTO_GROUP_X25519_GENERIC
+	help
+	  Portable constant-time Montgomery ladder over the fiat-crypto field
+	  arithmetic vendored from aws-lc. No assembly, no OpenSSL.
+
+config CRYPTO_GROUP_X25519_SEL_AWS_X86_64
+	bool "X25519 (aws-lc s2n-bignum, x86_64)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP_X25519_AWS_X86_64
+	help
+	  X25519 using the aws-lc s2n-bignum x86_64 assembly (compiled directly,
+	  no libcrypto link).
+
+config CRYPTO_GROUP_X25519_SEL_AWS_ARMV8
+	bool "X25519 (aws-lc s2n-bignum, ARMv8)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP_X25519_AWS_ARMV8
+	help
+	  X25519 using the aws-lc s2n-bignum ARMv8 assembly (compiled directly,
+	  no libcrypto link).
+
+endchoice
+
+#
+# secp256r1 (NIST P-256) key exchange.
+#
+config CRYPTO_GROUP_SECP256R1
+	bool
+
+config CRYPTO_GROUP_SECP256R1_AWS_X86_64
+	bool
+	select CRYPTO_GROUP_SECP256R1
+	select CRYPTO_GROUP
+
+config CRYPTO_GROUP_SECP256R1_AWS_ARMV8
+	bool
+	select CRYPTO_GROUP_SECP256R1
+	select CRYPTO_GROUP
+
+choice
+	prompt "secp256r1 (P-256) implementation"
+	depends on !MODULES
+	default CRYPTO_GROUP_SECP256R1_SEL_AWS_X86_64 if CC_CPU_ACCELERATION && SRCARCH = "x86"
+	default CRYPTO_GROUP_SECP256R1_SEL_AWS_ARMV8 if CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	default CRYPTO_GROUP_SECP256R1_SEL_N
+	help
+	  Select the secp256r1 (P-256) ECDHE implementation. A generic-C
+	  fallback is not yet provided; choose None to leave P-256 as
+	  identification-only (via the group table above).
+
+config CRYPTO_GROUP_SECP256R1_SEL_N
+	bool "None"
+
+config CRYPTO_GROUP_SECP256R1_SEL_AWS_X86_64
+	bool "secp256r1 (aws-lc s2n-bignum, x86_64)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP_SECP256R1_AWS_X86_64
+	help
+	  P-256 ECDHE using the aws-lc s2n-bignum x86_64 assembly (compiled
+	  directly, no libcrypto link).
+
+config CRYPTO_GROUP_SECP256R1_SEL_AWS_ARMV8
+	bool "secp256r1 (aws-lc s2n-bignum, ARMv8)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP_SECP256R1_AWS_ARMV8
+	help
+	  P-256 ECDHE using the aws-lc s2n-bignum ARMv8 assembly (compiled
+	  directly, no libcrypto link).
+
+endchoice
+
+#
+# secp384r1 (NIST P-384) key exchange.
+#
+config CRYPTO_GROUP_SECP384R1
+	bool
+
+config CRYPTO_GROUP_SECP384R1_AWS_X86_64
+	bool
+	select CRYPTO_GROUP_SECP384R1
+	select CRYPTO_GROUP
+
+config CRYPTO_GROUP_SECP384R1_AWS_ARMV8
+	bool
+	select CRYPTO_GROUP_SECP384R1
+	select CRYPTO_GROUP
+
+choice
+	prompt "secp384r1 (P-384) implementation"
+	depends on !MODULES
+	default CRYPTO_GROUP_SECP384R1_SEL_AWS_X86_64 if CC_CPU_ACCELERATION && SRCARCH = "x86"
+	default CRYPTO_GROUP_SECP384R1_SEL_AWS_ARMV8 if CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	default CRYPTO_GROUP_SECP384R1_SEL_N
+	help
+	  Select the secp384r1 (P-384) ECDHE implementation. A generic-C
+	  fallback is not yet provided; choose None to leave P-384 as
+	  identification-only (via the group table above).
+
+config CRYPTO_GROUP_SECP384R1_SEL_N
+	bool "None"
+
+config CRYPTO_GROUP_SECP384R1_SEL_AWS_X86_64
+	bool "secp384r1 (aws-lc s2n-bignum, x86_64)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP_SECP384R1_AWS_X86_64
+	help
+	  P-384 ECDHE using the aws-lc s2n-bignum x86_64 assembly (compiled
+	  directly, no libcrypto link).
+
+config CRYPTO_GROUP_SECP384R1_SEL_AWS_ARMV8
+	bool "secp384r1 (aws-lc s2n-bignum, ARMv8)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP_SECP384R1_AWS_ARMV8
+	help
+	  P-384 ECDHE using the aws-lc s2n-bignum ARMv8 assembly (compiled
+	  directly, no libcrypto link).
+
+endchoice
+
+comment "TLS group modules (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_GROUP_DYN_META
+	tristate "TLS group identification table (ECC / FFDHE / PQ)"
+	depends on MODULES
+	select CRYPTO_GROUP
+	default m
+	help
+	  Group identification metadata, loadable module.
+
+config CRYPTO_GROUP_DYN_X25519_GENERIC
+	tristate "X25519 (generic C, fiat)"
+	depends on MODULES
+	select CRYPTO_GROUP
+	default m
+	help
+	  Portable X25519 key exchange, loadable module.
+
+config CRYPTO_GROUP_DYN_X25519_AWS_X86_64
+	tristate "X25519 (aws-lc s2n-bignum, x86_64)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum x86_64 X25519, loadable module.
+
+config CRYPTO_GROUP_DYN_X25519_AWS_ARMV8
+	tristate "X25519 (aws-lc s2n-bignum, ARMv8)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum ARMv8 X25519, loadable module.
+
+config CRYPTO_GROUP_DYN_SECP256R1_AWS_X86_64
+	tristate "secp256r1 (aws-lc s2n-bignum, x86_64)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum x86_64 P-256, loadable module.
+
+config CRYPTO_GROUP_DYN_SECP256R1_AWS_ARMV8
+	tristate "secp256r1 (aws-lc s2n-bignum, ARMv8)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum ARMv8 P-256, loadable module.
+
+config CRYPTO_GROUP_DYN_SECP384R1_AWS_X86_64
+	tristate "secp384r1 (aws-lc s2n-bignum, x86_64)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum x86_64 P-384, loadable module.
+
+config CRYPTO_GROUP_DYN_SECP384R1_AWS_ARMV8
+	tristate "secp384r1 (aws-lc s2n-bignum, ARMv8)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_GROUP
+	default m
+	help
+	  aws-lc s2n-bignum ARMv8 P-384, loadable module.
+
+endmenu

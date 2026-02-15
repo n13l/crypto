@@ -1,3 +1,4 @@
-obj-$(CONFIG_CRYPTO_SHA3) += sha3.o
-obj-$(CONFIG_CRYPTO_SHA3_DYN_C) += sha3-c.o
-sha3-c-objs := sha3.o
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_SHA3_GENERIC) += sha3.o
+endif
+obj-$(CONFIG_CRYPTO_SHA3_DYN_GENERIC) += module.o

@@ -1,0 +1,166 @@
+menu "Transforms (encodings, formats)"
+
+#
+# Transforms are the encodings and file formats around the algorithms: they
+# turn material produced elsewhere into something indexable. Nothing here
+# derives, protects or verifies anything.
+#
+
+config CRYPTO_TRANSFORM_KEYLOG
+	bool "SSLKEYLOGFILE key log (draft-ietf-tls-keylogfile-05)"
+	default y
+	help
+	  Parse the SSLKEYLOGFILE format into one global, read-only hash table
+	  keyed by the 32-byte ClientHello Random — the cnonce a TLS decoder
+	  already has once it has parsed a ClientHello — and look secrets up by
+	  (cnonce, label). Covers the TLS 1.3 traffic, handshake, early and
+	  exporter secrets, the CLIENT_RANDOM master secret and
+	  PMS_CLIENT_RANDOM pre-master secret of TLS 1.2 and below, and the
+	  ECH_SECRET / ECH_CONFIG labels of the draft's ECH section.
+
+	  An entry holds the two key schedules as a union discriminated by the
+	  version its labels imply, with every buffer cut to the ceiling the
+	  RFCs set for it (modules/net/tls/bounds.h), so a secret costs no
+	  allocation and an entry is a fixed ~1.6 KB.
+
+	  This is how a passive dissector decrypts a capture it has the secrets
+	  for: the protocol module asks this table instead of deriving from a
+	  private key it does not have. Loading is a one-time startup step
+	  (keylog_init() reads $SSLKEYLOGFILE); lookups afterwards take no lock.
+
+	  The table holds plaintext session secrets in this process's heap for
+	  as long as it runs, so anything that can read the process can read
+	  every session it decoded. Enable it for analysis builds; leave it off
+	  where that is not what you want to be true.
+
+	  If unsure, say N.
+
+config CRYPTO_TRANSFORM_KEYLOG_BITS
+	int "Key log hash table order (buckets = 2^n)"
+	range 4 20
+	default 12
+	depends on CRYPTO_TRANSFORM_KEYLOG
+	help
+	  Number of buckets in the key log table, as a power of two. The table
+	  is a bare array of queue heads, so it costs one pointer per bucket:
+	  the default 12 is 4096 buckets, 32 KB of bss, and keeps chains at one
+	  or two entries for the few thousand connections a capture's key log
+	  usually describes.
+
+	  Raise it for a log covering far more connections than that; there is
+	  no rehashing, so the chains simply grow.
+
+config CRYPTO_TRANSFORM_HPACK
+	bool "HPACK header compression (RFC 7541), decoding side"
+	default n
+	help
+	  HPACK: the header compression HTTP/2 carries its metadata under.
+	  Turns the opaque bytes of a header block back into a name and a value
+	  at a time — the integer and string codings of §5, the Huffman code of
+	  Appendix B, the static table of Appendix A, and the dynamic table the
+	  two endpoints build together as they go.
+
+	  Decoding only. Nothing in this tree sends HTTP/2, and an encoder
+	  would be a second table and a second set of bugs for a message no
+	  process here writes.
+
+	  The tables are generated straight out of the RFC and checked in, so
+	  building needs no python and no network; the generator is in the
+	  module directory, and it verifies the automaton it emits against
+	  every Huffman-coded string in Appendix C before writing anything.
+
+	  Nothing here allocates. A dynamic table's memory is the caller's and
+	  its size is fixed when the table is made, so an encoder can neither
+	  choose how much this process holds nor how long it holds it — which
+	  matters, because everything HPACK asks a decoder to keep is chosen by
+	  the peer.
+
+	  This is what modules/net/http2 decodes HEADERS with. Enable it with
+	  that; on its own it is a library nothing calls.
+
+	  If unsure, say N.
+
+config CRYPTO_TRANSFORM_HPACK_FIELD_MAX
+	int "(HPACK) largest header name or value reconstructed, bytes"
+	default 65535
+	range 256 65535
+	depends on CRYPTO_TRANSFORM_HPACK
+	help
+	  The ceiling on one name and on one value, separately. It has to be
+	  the decoder's own number: a Huffman-coded string says how many bytes
+	  it occupies on the wire and not how many it expands to, so there is
+	  no bound available from the field itself before it is decoded.
+
+	  The default is the largest a length can be and still fit the two u16
+	  fields a dynamic table entry keeps, which is why the range stops
+	  there. It is deliberately generous rather than tuned: a field above
+	  it is refused, and refusing one field breaks that direction's dynamic
+	  table for good — every block after it is decoded against a table the
+	  encoder and this decoder no longer share — so the cost of setting it
+	  too low is losing every header of a connection rather than losing one.
+
+	  Real traffic reaches further into this than a first guess suggests.
+	  The HTTP/2 corpus in this tree (tools/testing/tls/un/test-h2-*) sends
+	  a header block of 22 KB across a HEADERS and a CONTINUATION, and an
+	  earlier default of 8192 refused it — which is the shape to expect:
+	  not a header that is a little too long, but one connection reporting
+	  no headers at all from a stream onwards.
+
+	  It sizes the per-worker staging (struct hpack_scratch), which is four
+	  times this many bytes — 256 KB at the default — and exists once per
+	  thread of control rather than once per connection. Lower it for a
+	  deployment running many workers on a small machine, knowing what the
+	  paragraph above says the cost is.
+
+config CRYPTO_TRANSFORM_QPACK
+	bool "QPACK field compression (RFC 9204), decoding side"
+	default n
+	help
+	  QPACK: the field compression HTTP/3 carries its metadata under.
+	  Turns the opaque bytes of an encoded field section back into a name
+	  and a value at a time — the integer and string codings of §4.1, the
+	  static table of Appendix A, and the dynamic table the encoder builds
+	  over its own unidirectional stream.
+
+	  Decoding only, for HPACK's reason: nothing in this tree sends
+	  HTTP/3. What QPACK's split of reading from writing buys a passive
+	  decoder is that an encoded field section never modifies the table,
+	  so one that references insertions still in flight is simply held
+	  and offered again — only the encoder stream can poison the state.
+
+	  The static table is generated straight out of RFC 9204 and checked
+	  in; the Huffman automaton is HPACK's (RFC 9204 §4.1.2 adopts
+	  RFC 7541 Appendix B unchanged), included from its directory so
+	  there is one generator and one table to trust.
+
+	  Nothing here allocates. A dynamic table's memory is the caller's
+	  and its size is fixed when the table is made, so an encoder can
+	  neither choose how much this process holds nor how long.
+
+	  This is what modules/net/http3 decodes HEADERS with. Enable it with
+	  that; on its own it is a library nothing calls.
+
+	  If unsure, say N.
+
+config CRYPTO_TRANSFORM_QPACK_FIELD_MAX
+	int "(QPACK) largest field name or value reconstructed, bytes"
+	default 65535
+	range 256 65535
+	depends on CRYPTO_TRANSFORM_QPACK
+	help
+	  The ceiling on one name and on one value, separately, for the same
+	  reason HPACK's exists: a Huffman-coded string says how many bytes it
+	  occupies on the wire and not how many it expands to.
+
+	  The consequences of a refusal are gentler here than on HPACK: a
+	  field section that will not fit loses that section and nothing
+	  else, because sections never write the dynamic table. A field
+	  arriving on the *encoder stream* past this ceiling still breaks the
+	  direction for good, exactly as an HPACK refusal does, which is why
+	  the default is the largest the table entry's u16 lengths can hold
+	  rather than something tuned.
+
+	  It sizes the per-worker staging (struct qpack_scratch), four times
+	  this many bytes, once per thread of control.
+
+endmenu

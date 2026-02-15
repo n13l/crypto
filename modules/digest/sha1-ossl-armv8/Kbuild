@@ -1,0 +1,44 @@
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_ARMV8) += sha1_block.o sha1-armv8.o armcap.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_ARMV8) += sha1-ossl-armv8.o
+sha1-ossl-armv8-objs := sha1_block.o sha1-armv8.o armcap.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+AFLAGS_sha1-armv8.o := -I$(srctree)/vendor/openssl/include
+$(OSSL_SHA_ASM)/sha1-armv8.S: $(srctree)/vendor/openssl/crypto/sha/asm/sha1-armv8.pl
+	@mkdir -p $(dir $@)
+	$(PERL) $< linux64 $@
+$(obj)/sha1-armv8.o: $(OSSL_SHA_ASM)/sha1-armv8.S FORCE
+	$(call if_changed_dep,as_o_S)
+$(obj)/armcap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/arm-ossl/cap.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+CFLAGS_sha1_block.o := \
+	-I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha1-ossl-armv8 \
+	-I$(srctree)/vendor/openssl/include \
+	-I$(srctree)/vendor/openssl \
+	-I$(objtree)/vendor/openssl/include \
+	-DSHA1_ASM
+
+#
+# The block glue, one object, and only where the object is wanted.
+#
+# The glue is written once for the whole family and compiled against this
+# backend: modules/digest/sha1-arch/arch.c is the include of built-in.h and
+# nothing else, and the -I below is what makes that this backend's built-in.h
+# (the same arrangement as modules/cipher/aes-ccm/ccm.c, a mode written once and
+# compiled against each backend's block cipher).
+#
+# Optimizing for size that is where the glue is compiled and every caller of a
+# digest calls across the boundary; optimizing for speed built-in.h carries the
+# bodies into each caller, this object would hold nothing, and it is not built.
+# modules/digest/sha1-arch/decl.h says the rest of it.
+#
+SHA1_ARCH := $(srctree)/$(CRYPTO_DIR)/modules/digest/sha1-arch
+
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_ARMV8) += arch.o
+$(obj)/arch.o: $(SHA1_ARCH)/arch.c FORCE
+	$(call if_changed_rule,cc_o_c)
+CFLAGS_arch.o := -I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha1-ossl-armv8
+endif

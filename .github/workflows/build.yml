@@ -36,7 +36,7 @@ jobs:
           CONFIG_CRYPTO_SHA1_DYN_ASM=m
           CONFIG_CRYPTO_SHA2_DYN_ASM=m
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -76,7 +76,7 @@ jobs:
           CONFIG_CRYPTO_SHA1_DYN_ASM=m
           CONFIG_CRYPTO_SHA2_DYN_ASM=m
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -118,7 +118,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -160,7 +160,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -202,7 +202,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -212,6 +212,58 @@ jobs:
           ls -lah obj/test/digest
           file obj/test/digest
           obj/test/digest
+
+  bench-digest-x86_64:
+    name: Digest benchmark x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl python3-matplotlib
+
+      - name: Run benchmark
+        run: ./test/scripts/bench-digest.sh
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-digest-x86_64
+          path: |
+            obj/bench/results.tsv
+            obj/bench/bench-digest.png
+            obj/bench/*.txt
+
+  bench-digest-arm64:
+    name: Digest benchmark arm64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl python3-matplotlib
+
+      - name: Run benchmark
+        run: ./test/scripts/bench-digest.sh
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-digest-arm64
+          path: |
+            obj/bench/results.tsv
+            obj/bench/bench-digest.png
+            obj/bench/*.txt
 
   linux-ubuntu-x86_64-size:
     name: Linux Ubuntu x86_64 (optimized for size, minimal)
@@ -244,7 +296,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)

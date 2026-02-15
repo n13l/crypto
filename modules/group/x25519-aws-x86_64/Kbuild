@@ -1,0 +1,16 @@
+# X25519 aws-lc accelerated backend, x86_64. Compiles the s2n-bignum scalar
+# multiplication assembly (bundled with aws-lc) directly, like the SHA aws-lc
+# digest backends; no libcrypto link. The .S files need aws-lc's include dir
+# (boringssl_prefix_symbols_asm.h) and the s2n-bignum include dir
+# (_internal_s2n_bignum_x86_att.h) on the assembler search path.
+S2N_INC := $(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include
+AWS_INC := $(srctree)/vendor/aws-lc/include
+
+obj-$(CONFIG_CRYPTO_GROUP_X25519_AWS_X86_64) += module.o \
+	curve25519_x25519.o curve25519_x25519base.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_AWS_X86_64) += crypto-group-x25519-aws-x86_64.o
+crypto-group-x25519-aws-x86_64-objs := module.o \
+	curve25519_x25519.o curve25519_x25519base.o
+
+AFLAGS_curve25519_x25519.o     := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_curve25519_x25519base.o := -I$(AWS_INC) -I$(S2N_INC)

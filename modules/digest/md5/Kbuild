@@ -1,0 +1,4 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_MD5) += md5.o
+endif
+obj-$(CONFIG_CRYPTO_MD5_DYN) += module.o

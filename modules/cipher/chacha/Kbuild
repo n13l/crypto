@@ -1,0 +1,5 @@
+# ChaCha20-Poly1305 AEAD (RFC 7539). Built as separate objects in both
+# modes (no built-in inlining).
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_GENERIC) += chacha.o poly1305.o chachapoly.o
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_GENERIC) += cipher-chacha.o
+cipher-chacha-objs := module.o chacha.o poly1305.o chachapoly.o

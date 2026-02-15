@@ -1,0 +1,101 @@
+# The digest backends. One of each family is selected and its directory is
+# built; the DYN line beside it is the same directory built as a loadable
+# module instead.
+#
+# What a size build does about the inlining is settled one directory down, and
+# it is the same seam in every one of them: a backend's built-in.h is read by
+# every translation unit that includes <crypto/digest.h>, so the bodies in it
+# are a copy per object, which is what a speed build wants and what a size
+# build has to be able to turn off. Optimizing for size each backend compiles
+# its bodies once and hands every other includer the declarations: the generic
+# backends through their own sha1.c/sha2.c/sha3.c, the assembly-backed ones
+# through the arch.c of their family. CC_SZ_DECLARE and CC_SZ_DEFINE
+# (<hpc/compiler.h>) are the two halves, and modules/net/tls/module.h is the
+# same seam a layer up.
+#
+# sha1-arch/, sha2-arch/ and sha3-arch/ are those families, and they are not
+# backends: they hold no built-in.h, are never entered as a directory, and are
+# where the bodies live rather than in each backend that has them. Nothing is
+# left of an assembly backend's C but what makes it that backend - the state
+# layout, the sizes and the block function - because the buffering, the counter
+# and the padding around a compression function are the same in all of them.
+# decl.h is what a backend includes always and arch.c what its Kbuild compiles
+# for a size build, against that backend through a -I. It is the arrangement
+# modules/cipher/aes-ccm/ccm.c already uses for a mode over a block cipher; each
+# family's decl.h and arch.h say the rest.
+#
+# Two backends are not in a family's arch.h, for opposite reasons. The *-null
+# ones have empty bodies, so there is nothing a call would save and nothing to
+# share; they have no arch.o and no line for one. sha3-ossl-x86_64-avx2 has too
+# much: its assembly absorbs whole rate blocks rather than permuting one state,
+# so the sponge around it is a different shape and stays in its own built-in.h -
+# it shares the family's declarations and arch.c and none of its bodies.
+
+obj-y += digest_info.o
+
+obj-$(CONFIG_CRYPTO_SHA1_NULL) += sha1-null/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_NULL) += sha1-null/
+
+obj-$(CONFIG_CRYPTO_SHA1_GENERIC) += sha1/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_GENERIC) += sha1/
+
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_X86_64) += sha1-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_X86_64) += sha1-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_ARMV8) += sha1-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_ARMV8) += sha1-ossl-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64) += sha1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64) += sha1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_AVX) += sha1-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_AVX) += sha1-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_AVX2) += sha1-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_AVX2) += sha1-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_SHANI) += sha1-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_SHANI) += sha1-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_ARMV8) += sha1-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_ARMV8) += sha1-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA2_GENERIC) += sha2/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_GENERIC) += sha2/
+
+obj-$(CONFIG_CRYPTO_SHA2_NULL) += sha2-null/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_NULL) += sha2-null/
+
+obj-$(CONFIG_CRYPTO_SHA2_OSSL_X86_64) += sha2-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_OSSL_X86_64) += sha2-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_OSSL_ARMV8) += sha2-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_OSSL_ARMV8) += sha2-ossl-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64) += sha2-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64) += sha2-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64_AVX) += sha2-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64_AVX) += sha2-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64_AVX2) += sha2-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64_AVX2) += sha2-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64_SHANI) += sha2-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64_SHANI) += sha2-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_ARMV8) += sha2-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_ARMV8) += sha2-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA3) += sha3/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_C) += sha3/
+
+obj-$(CONFIG_CRYPTO_SHA3_NULL) += sha3-null/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_NULL) += sha3-null/
+
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_X86_64) += sha3-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_X86_64) += sha3-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_ARMV8) += sha3-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_ARMV8) += sha3-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_X86_64_AVX2) += sha3-ossl-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_X86_64_AVX2) += sha3-ossl-x86_64-avx2/
+
+obj-$(CONFIG_CRYPTO_SHA3_AWS_X86_64) += sha3-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_X86_64) += sha3-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_AWS_ARMV8) += sha3-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_ARMV8) += sha3-aws-armv8/
+
+# MD5, and only the one backend: nothing accelerates it and nothing should.
+# Off unless a build asked for the TLS 1.0/1.1 key schedule that needs it.
+obj-$(CONFIG_CRYPTO_MD5) += md5/
+obj-$(CONFIG_CRYPTO_MD5_DYN) += md5/

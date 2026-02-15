@@ -1,0 +1,4 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_SHA1_GENERIC) += sha1.o
+endif
+obj-$(CONFIG_CRYPTO_SHA1_DYN_GENERIC) += module.o

@@ -1,0 +1,4 @@
+# Group identification (metadata) backend.
+obj-$(CONFIG_CRYPTO_GROUP_META)     += module.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_META) += crypto-group-meta.o
+crypto-group-meta-objs := module.o

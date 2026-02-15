@@ -1,0 +1,31 @@
+# crypto unit selftests.
+#
+# Sources drop the test_ prefix (the directory already says testing); the built
+# binaries keep it, because the shared runner discovers unit executables through
+# a tools/testing/selftests/units/test_* glob (scripts/run-check.sh), and the
+# bats suite next door runs each one as a case.
+#
+#   test_wire  the wire cursor (crypto/wire.h): the bounds tests every parser
+#              above it stands on, driven against an unmapped guard page so a
+#              read past the end of a run is a signal and not a silent pass.
+#              It links nothing - the cursor is a header of static inlines.
+#
+#   test_chachapoly
+#              the ChaCha20-Poly1305 AEAD, against RFC 8439 and against the
+#              lengths its backends branch on. It links the algorithm archive
+#              rather than one implementation, so the same cases run against
+#              whichever backend CONFIG_CRYPTO_CIPHER_CHACHA20_SEL_* picked.
+#
+#   test_gcm   AES-128/256-GCM, the other AEAD the record layer opens with:
+#              the GCM specification's own vectors, then round trips at every
+#              record length. Linked and configured like test_chachapoly.
+cmockatest-y := test_wire test_chachapoly test_gcm test_ccm
+
+test_wire-y := wire.o
+test_chachapoly-y := chachapoly.o
+test_gcm-y := gcm.o
+test_ccm-y := ccm.o
+
+CMOCKA_LIBS_test_chachapoly = $(CRYPTO_MODULES)/built-in.o
+CMOCKA_LIBS_test_gcm = $(CRYPTO_MODULES)/built-in.o
+CMOCKA_LIBS_test_ccm = $(CRYPTO_MODULES)/built-in.o
