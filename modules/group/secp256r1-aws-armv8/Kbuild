@@ -1,0 +1,12 @@
+# secp256r1 (P-256) aws-lc accelerated backend, ARMv8 (s2n-bignum asm).
+S2N_INC := $(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include
+AWS_INC := $(srctree)/vendor/aws-lc/include
+
+obj-$(CONFIG_CRYPTO_GROUP_SECP256R1_AWS_ARMV8) += module.o \
+	p256_scalarmul.o bignum_mod_n256_4.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP256R1_AWS_ARMV8) += crypto-group-secp256r1-aws-armv8.o
+crypto-group-secp256r1-aws-armv8-objs := module.o \
+	p256_scalarmul.o bignum_mod_n256_4.o
+
+AFLAGS_p256_scalarmul.o    := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_mod_n256_4.o := -I$(AWS_INC) -I$(S2N_INC)

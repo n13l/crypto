@@ -1,0 +1,10 @@
+# HPACK (RFC 7541) header decompression.
+#
+# Built in only, like keylog/ beside it: the decoder is reached by a direct
+# call from whatever holds the connection state, so there is nothing for the
+# module dispatcher to register and no DYN variant.
+#
+# huffman.h and static.h are generated from the RFC by rfc7541.py in this
+# directory and are checked in, so building the tree needs neither python nor
+# a copy of RFC 7541.
+obj-$(CONFIG_CRYPTO_TRANSFORM_HPACK) += hpack.o

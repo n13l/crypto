@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_PRF_SM3) += sm3.o
+endif
+obj-$(CONFIG_CRYPTO_PRF_SM3_DYN) += prf-sm3.o
+prf-sm3-objs := module.o

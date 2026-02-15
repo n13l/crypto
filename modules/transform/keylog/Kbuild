@@ -1,0 +1,5 @@
+# SSLKEYLOGFILE (draft-ietf-tls-keylogfile-05) parser and lookup table.
+#
+# Built in only — the table is a global reached by a direct call, so there is
+# nothing for the module dispatcher to register and no DYN variant.
+obj-$(CONFIG_CRYPTO_TRANSFORM_KEYLOG) += keylog.o

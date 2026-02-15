@@ -1,0 +1,35 @@
+# ChaCha20-Poly1305 with the keystream and the authenticator fused into one
+# pass of aws-lc ARMv8 NEON assembly (chacha20_poly1305_{open,seal}).
+#
+# The AEAD wrapper is the generic ../chacha one, compiled here with the fused
+# glue on its include path (-DCHACHAPOLY_FUSED): it dispatches to the assembly
+# for RFC 7539 proper — 256-bit key, 16-byte tag — and falls back to the
+# two-pass construction for anything else, which is why the separate ChaCha20
+# and Poly1305 objects are still linked in.
+CHACHA_AWS   := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha-aws
+CHACHA_GEN   := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha
+CHACHA_FUSED := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha-aws-fused-armv8
+
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_FUSED_ARMV8) += chacha-aws.o poly1305.o \
+	chachapoly.o chacha-armv8.o chacha20-poly1305-armv8.o \
+	chacha-aws-armcap.o
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_FUSED_ARMV8) += cipher-chacha-aws-fused-armv8.o
+cipher-chacha-aws-fused-armv8-objs := module.o chacha-aws.o poly1305.o \
+	chachapoly.o chacha-armv8.o chacha20-poly1305-armv8.o \
+	chacha-aws-armcap.o
+
+$(obj)/chacha-aws.o: $(CHACHA_AWS)/chacha-aws.c FORCE
+	$(call if_changed_rule,cc_o_c)
+$(obj)/poly1305.o: $(CHACHA_GEN)/poly1305.c FORCE
+	$(call if_changed_rule,cc_o_c)
+$(obj)/chachapoly.o: $(CHACHA_GEN)/chachapoly.c FORCE
+	$(call if_changed_rule,cc_o_c)
+$(obj)/chacha-armv8.o: $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha-aws-armv8/chacha-armv8.S FORCE
+	$(call if_changed_dep,as_o_S)
+$(obj)/chacha-aws-armcap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/arm-ossl/cap.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+CFLAGS_chacha-aws.o := -I$(CHACHA_AWS)
+CFLAGS_chachapoly.o := -DCHACHAPOLY_FUSED -I$(CHACHA_FUSED)
+AFLAGS_chacha-armv8.o := -I$(srctree)/vendor/aws-lc/include
+AFLAGS_chacha20-poly1305-armv8.o := -I$(srctree)/vendor/aws-lc/include

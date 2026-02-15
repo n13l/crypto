@@ -1,0 +1,13 @@
+# X25519 aws-lc accelerated backend, ARMv8. Compiles the s2n-bignum scalar
+# multiplication assembly (bundled with aws-lc) directly; no libcrypto link.
+S2N_INC := $(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include
+AWS_INC := $(srctree)/vendor/aws-lc/include
+
+obj-$(CONFIG_CRYPTO_GROUP_X25519_AWS_ARMV8) += module.o \
+	curve25519_x25519_byte.o curve25519_x25519base_byte.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_AWS_ARMV8) += crypto-group-x25519-aws-armv8.o
+crypto-group-x25519-aws-armv8-objs := module.o \
+	curve25519_x25519_byte.o curve25519_x25519base_byte.o
+
+AFLAGS_curve25519_x25519_byte.o     := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_curve25519_x25519base_byte.o := -I$(AWS_INC) -I$(S2N_INC)

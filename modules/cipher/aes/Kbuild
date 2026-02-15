@@ -1,0 +1,14 @@
+# AES-128/256 primitives (CBC, GCM, CCM). Table-based reference
+# implementation; built as separate objects in both modes (no built-in
+# inlining). CCM is the mode written once in ../aes-ccm, compiled here against
+# this backend's block cipher (ccm-backend.h).
+AES_CCM := $(srctree)/$(CRYPTO_DIR)/modules/cipher/aes-ccm
+
+obj-$(CONFIG_CRYPTO_CIPHER_AES_GENERIC) += cbc128.o cbc256.o gcm.o ccm.o
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_GENERIC) += cipher-aes.o
+cipher-aes-objs := module.o cbc128.o cbc256.o gcm.o ccm.o
+
+$(obj)/ccm.o: $(AES_CCM)/ccm.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+CFLAGS_ccm.o := -I$(srctree)/$(CRYPTO_DIR)/modules/cipher/aes

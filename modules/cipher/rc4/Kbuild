@@ -1,0 +1,4 @@
+# RC4. One backend, no acceleration, and no mode: the cipher is the keystream.
+obj-$(CONFIG_CRYPTO_CIPHER_RC4) += rc4.o
+obj-$(CONFIG_CRYPTO_CIPHER_RC4_DYN) += cipher-rc4.o
+cipher-rc4-objs := module.o rc4.o

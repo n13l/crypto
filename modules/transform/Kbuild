@@ -1,0 +1,10 @@
+# Transforms — encodings and on-disk formats, not algorithms. Nothing here
+# derives or protects anything; each unit turns material this process did not
+# produce into something the rest of the tree can index.
+#
+# b16/ and b64/ are not wired up yet: they are consumed as sources by the
+# out-of-tree callers that predate this Kbuild. keylog/ and hpack/ are
+# self-contained.
+obj-$(CONFIG_CRYPTO_TRANSFORM_KEYLOG) += keylog/
+obj-$(CONFIG_CRYPTO_TRANSFORM_HPACK) += hpack/
+obj-$(CONFIG_CRYPTO_TRANSFORM_QPACK) += qpack/

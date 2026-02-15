@@ -1,0 +1,39 @@
+# AES-128/256 (CBC, GCM)
+obj-$(CONFIG_CRYPTO_CIPHER_AES_GENERIC) += aes/
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_GENERIC) += aes/
+obj-$(CONFIG_CRYPTO_CIPHER_AES_AWS_X86_64) += aes-aws-x86_64/
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_AWS_X86_64) += aes-aws-x86_64/
+obj-$(CONFIG_CRYPTO_CIPHER_AES_AWS_ARMV8) += aes-aws-armv8/
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_AWS_ARMV8) += aes-aws-armv8/
+
+# ChaCha20-Poly1305 (RFC 7539)
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_GENERIC) += chacha/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_GENERIC) += chacha/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_X86_64) += chacha-aws-x86_64/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_X86_64) += chacha-aws-x86_64/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_ARMV8) += chacha-aws-armv8/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_ARMV8) += chacha-aws-armv8/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_FUSED_ARMV8) += chacha-aws-fused-armv8/
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_FUSED_ARMV8) += chacha-aws-fused-armv8/
+
+# The TLS 1.0/1.1 era. One backend each, no acceleration, off by default:
+# these exist to read the 3DES and RC4 suites of that traffic.
+obj-$(CONFIG_CRYPTO_CIPHER_DES3) += des3/
+obj-$(CONFIG_CRYPTO_CIPHER_DES3_DYN) += des3/
+
+obj-$(CONFIG_CRYPTO_CIPHER_RC4) += rc4/
+obj-$(CONFIG_CRYPTO_CIPHER_RC4_DYN) += rc4/
+
+# SM4 (CBC, GCM, CCM): the ShangMi TLS 1.3 suites (RFC 8998). One backend,
+# no acceleration, off by default.
+obj-$(CONFIG_CRYPTO_CIPHER_SM4) += sm4/
+obj-$(CONFIG_CRYPTO_CIPHER_SM4_DYN) += sm4/
+
+# ARIA and Camellia (CBC, GCM): the other block ciphers of the TLS 1.2
+# registry (RFC 6209, RFC 5932, RFC 6367). Generic C, off by default. gcm/ is
+# the mode they and SM4 share, compiled per backend from each one's Kbuild,
+# and is not a directory of its own to enter.
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA) += aria/
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA_DYN) += aria/
+obj-$(CONFIG_CRYPTO_CIPHER_CAMELLIA) += camellia/
+obj-$(CONFIG_CRYPTO_CIPHER_CAMELLIA_DYN) += camellia/

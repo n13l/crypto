@@ -1,0 +1,125 @@
+#
+# Crypto policy options — the decisions about *which* implementations a build
+# may select and *what* an open is allowed to skip. They belong to this
+# package, and this file is the single place they are defined: crypto's own
+# Kconfig sources it into its "Crypto options" menu, and a tree that embeds
+# crypto (un) sources the same file rather than keeping a copy in step by
+# hand. Sourced as "$CRYPTO_DIR/Kconfig.crypto", which resolves in either tree.
+#
+# The file carries no menu of its own so each package can place these where its
+# own menu structure wants them.
+#
+# CRYPTO_VERIFIED deliberately declares no default here. A bool without one is
+# n, which is what crypto standalone wants, and leaving it absent is what lets
+# an embedding package state its own policy — un declares "default y" and gets
+# it. Adding a "default n" line here would not be a no-op: kconfig takes the
+# first default in file order, so it would beat any override declared after the
+# source line.
+#
+
+config CRYPTO_VERIFIED
+	bool "Use only verified cryptography"
+	help
+	  When enabled, only formally verified or audited cryptographic
+	  implementations are available for selection. Currently this
+	  restricts algorithm choices to aws-lc provided implementations.
+
+	  This is not a performance option, and it is not the trade the two
+	  symbols below it are. Those buy speed by giving up an answer, and a
+	  build that exists to measure throughput turns them off; this one it
+	  leaves on, because there is nothing to give up. The aws-lc
+	  implementations are the same hand-written assembly as the
+	  alternatives, where the build targets the host CPU the default chains
+	  pin their SHA-NI, AVX2 or ARMv8 variant and verified is as often the
+	  faster route as the slower one. Saying n to go faster is backwards.
+
+	  What n buys is a wider menu of implementations, and in this tree
+	  that is a narrow thing: y hides the generic C and OpenSSL choices,
+	  and the digests are the only algorithms that have both: SHA-1,
+	  SHA-2 and SHA-3, with HMAC, PRF and HKDF following whichever digest
+	  is selected. AES, ChaCha20-Poly1305, the groups and the transforms
+	  have no OpenSSL variant to select and are aws-lc whatever this is
+	  set to. So for the common suites (AES-GCM, ChaCha20-Poly1305,
+	  X25519 and the NIST curves, SHA-2) the restriction is not felt at
+	  all.
+
+	  Where it is felt is a target aws-lc has no assembly for. Those
+	  digests exist for x86_64 and armv8, so on any other architecture, or
+	  under CONFIG_CC_CPU_ACCEL_NONE, y hides the portable C fallback and
+	  leaves the digest choice nowhere to land: the SHA-1 and SHA-2
+	  selectors come out "none" — no digest in the build at all — where n
+	  would have selected the generic implementation. Say n there.
+
+	  One caveat when measuring rather than shipping: OpenSSL modules
+	  dispatch on CPUID/hwcaps at run time whatever the build targeted,
+	  while the aws-lc variant is fixed at configure time. On a
+	  portable-CPU build that holds aws-lc to baseline assembly while
+	  OpenSSL still picks up the host's extensions, so a backend
+	  comparison belongs on a build that targets the host CPU.
+
+	  Needs the aws-lc submodule, which is initialized on demand.
+
+config CRYPTO_VERIFIED_DECRYPT_AEAD
+	bool "Verify the authentication tag when decrypting"
+	default y
+	help
+	  Check that what came out of an AEAD open is what the sender put in,
+	  and refuse the record when it is not.
+
+	  Opening a record is two jobs and on a modern core they cost about
+	  the same, so saying n — run the keystream, compute no authenticator
+	  — is worth about 1.9x on AES-128-GCM here. ChaCha20-Poly1305 gains
+	  almost nothing, because the fused assembly has no entry point that
+	  skips the tag and declining to verify declines the fused backend
+	  with it.
+
+	  This is the AEAD half only. The CBC HMAC suites are not opened by an
+	  AEAD backend at all — the record layer composes and checks that MAC
+	  itself — and they have their own symbol,
+	  CONFIG_CRYPTO_VERIFIED_DECRYPT_MAC.
+
+	  What n costs is the guarantee: every decrypt reports success, so a
+	  forgery, a rewritten header and a corrupted capture all become
+	  plaintext indistinguishable from a good record, and the counter that
+	  reported a failed tag stops counting. A decoder reading already
+	  captured traffic is the case where that trade can be made at all —
+	  but it is still the decoder's own answer about whether a record was
+	  genuine that is being given up.
+
+	  If unsure, say Y.
+
+config CRYPTO_VERIFIED_DECRYPT_MAC
+	bool "Verify the MAC when decrypting"
+	default y
+	help
+	  The same decision as CONFIG_CRYPTO_VERIFIED_DECRYPT_AEAD, for the
+	  ciphers that are not AEAD: the TLS 1.0-1.2 CBC suites, where the
+	  authenticator is an HMAC that whoever composes the record checks
+	  itself rather than something a cipher backend returns. This package
+	  supplies the pieces; the symbol is read by the record layer that
+	  puts them together (net/tls/hs in un). Say n and that layer decrypts
+	  the record, strips the padding and the MAC, and delivers the
+	  plaintext without computing the HMAC over it.
+
+	  The HMAC is most of the work in a CBC open — SHA-1 or SHA-256 over
+	  the whole record next to an AES-CBC pass over the same bytes — so n
+	  measures about 3-4x on the AES-CBC HMAC suites, the largest single
+	  saving of any of these knobs. It applies to both compositions:
+	  MAC-then-encrypt, and encrypt-then-MAC (RFC 7366), where the MAC is
+	  over the ciphertext and is otherwise checked before decrypting.
+
+	  What n costs is the same guarantee the AEAD symbol gives up, with
+	  one difference in degree. A CBC record still has to decrypt to
+	  well-formed padding of a plausible length, so a random forgery is
+	  usually still refused — but it is refused by a structural check, not
+	  by an authenticator, and anything that survives that check is
+	  delivered as genuine plaintext. Under encrypt-then-MAC the trailing
+	  MAC bytes are only sliced off, never checked, and a rewritten record
+	  header no longer changes the answer at all.
+
+	  The two symbols are independent so a measurement can attribute the
+	  cost to one composition or the other, but a build that turns off
+	  only one is verifying half its traffic. Nothing terminating a live
+	  connection should carry either off.
+
+	  If unsure, say Y.

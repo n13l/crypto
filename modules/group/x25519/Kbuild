@@ -1,0 +1,4 @@
+# X25519 generic C backend (fiat field arithmetic, no OpenSSL).
+obj-$(CONFIG_CRYPTO_GROUP_X25519_GENERIC)     += module.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_GENERIC) += crypto-group-x25519.o
+crypto-group-x25519-objs := module.o

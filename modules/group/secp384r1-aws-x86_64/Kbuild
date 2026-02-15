@@ -1,0 +1,17 @@
+# secp384r1 (P-384) aws-lc accelerated backend, x86_64 (s2n-bignum asm).
+S2N_INC := $(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include
+AWS_INC := $(srctree)/vendor/aws-lc/include
+
+P384_ASM := p384_montjscalarmul.o bignum_tomont_p384.o bignum_demont_p384.o \
+	bignum_montmul_p384.o bignum_montinv_p384.o bignum_mod_n384_6.o
+
+obj-$(CONFIG_CRYPTO_GROUP_SECP384R1_AWS_X86_64) += module.o $(P384_ASM)
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP384R1_AWS_X86_64) += crypto-group-secp384r1-aws-x86_64.o
+crypto-group-secp384r1-aws-x86_64-objs := module.o $(P384_ASM)
+
+AFLAGS_p384_montjscalarmul.o := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_tomont_p384.o  := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_demont_p384.o  := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_montmul_p384.o := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_montinv_p384.o := -I$(AWS_INC) -I$(S2N_INC)
+AFLAGS_bignum_mod_n384_6.o   := -I$(AWS_INC) -I$(S2N_INC)

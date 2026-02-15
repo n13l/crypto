@@ -1,0 +1,5 @@
+# Triple DES in EDE mode, CBC. One backend, no acceleration: it exists to read
+# the *_WITH_3DES_EDE_CBC_SHA suites of TLS 1.0/1.1 rather than to run fast.
+obj-$(CONFIG_CRYPTO_CIPHER_DES3) += des3.o
+obj-$(CONFIG_CRYPTO_CIPHER_DES3_DYN) += cipher-des3.o
+cipher-des3-objs := module.o des3.o

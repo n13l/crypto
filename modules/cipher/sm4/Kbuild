@@ -1,0 +1,27 @@
+# SM4 (CBC, GCM, CCM), for the ShangMi TLS 1.3 suites of RFC 8998. One
+# backend, portable C, off by default. Built as separate objects in both
+# modes, like the table-based AES and the 3DES beside it. GCM and CCM are the
+# modes written once in ../gcm and ../aes-ccm, compiled here over this block
+# cipher (gcm-backend.h, ccm-backend.h) and under this cipher's entry-point
+# names.
+MODE_GCM := $(srctree)/$(CRYPTO_DIR)/modules/cipher/gcm
+MODE_CCM := $(srctree)/$(CRYPTO_DIR)/modules/cipher/aes-ccm
+
+obj-$(CONFIG_CRYPTO_CIPHER_SM4) += sm4.o gcm.o ccm.o
+obj-$(CONFIG_CRYPTO_CIPHER_SM4_DYN) += cipher-sm4.o
+cipher-sm4-objs := module.o sm4.o gcm.o ccm.o
+
+$(obj)/gcm.o: $(MODE_GCM)/gcm.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+$(obj)/ccm.o: $(MODE_CCM)/ccm.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+CFLAGS_gcm.o := -I$(srctree)/$(CRYPTO_DIR)/modules/cipher/sm4 \
+		-DGCM_ENCRYPT_AAD=sm4_gcm_encrypt_aad \
+		-DGCM_DECRYPT_AAD=sm4_gcm_decrypt_aad \
+		-DGCM_ENCRYPT=sm4_gcm_encrypt -DGCM_DECRYPT=sm4_gcm_decrypt
+
+CFLAGS_ccm.o := -I$(srctree)/$(CRYPTO_DIR)/modules/cipher/sm4 \
+		-DCCM_ENCRYPT_AAD=sm4_ccm_encrypt_aad \
+		-DCCM_DECRYPT_AAD=sm4_ccm_decrypt_aad

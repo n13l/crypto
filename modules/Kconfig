@@ -1,0 +1,11 @@
+menu "Crypto modules"
+
+source "$CRYPTO_DIR/modules/digest/Kconfig"
+source "$CRYPTO_DIR/modules/hmac/Kconfig"
+source "$CRYPTO_DIR/modules/prf/Kconfig"
+source "$CRYPTO_DIR/modules/hkdf/Kconfig"
+source "$CRYPTO_DIR/modules/cipher/Kconfig"
+source "$CRYPTO_DIR/modules/group/Kconfig"
+source "$CRYPTO_DIR/modules/transform/Kconfig"
+
+endmenu

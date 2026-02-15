@@ -1,0 +1,159 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+mainmenu "$PACKAGE_NAME/$SRCARCH $ARCH $D $COMPILER Configuration on $PLATFORM"
+
+config ARCH 
+	string 
+	option env="ARCH"
+config SRCARCH
+	string
+	option env="SRCARCH"
+config SUBARCH
+        string
+        option env="SUBARCH"
+config HOST
+	string
+	option env="HOST"
+config TARGET
+        string
+        option env="TARGET"
+config PLATFORM
+	string
+	option env="PLATFORM"
+config DEBUG
+	string
+	option env="DEBUG"
+config COMPILER
+	string
+	option env="COMPILER"
+config PACKAGE_NAME
+	string
+	option env="PACKAGE_NAME"
+
+config SRCTREE
+	string
+	option env="srctree"
+
+config CRYPTO_DIR
+	string
+	option env="CRYPTO_DIR"
+
+menu "Architecture options"
+source "arch/$SRCARCH/Kconfig"
+source "arch/Kconfig"
+endmenu
+
+menu "Build options"
+source "scripts/Kconfig.compiler"
+source "scripts/Kconfig.debug"
+
+endmenu
+
+menu "Crypto options"
+
+#
+# The policy options — which implementations may be selected, and what an
+# open may skip. Kept in their own file so a tree that embeds this package
+# (un) sources the same definitions instead of keeping a copy of them in
+# step by hand; see Kconfig.crypto.
+#
+source "$CRYPTO_DIR/Kconfig.crypto"
+
+config OPENSSL_NO_ASM
+	bool "Disable OpenSSL assembly optimizations"
+	default n
+	help
+	  Pass no-asm to OpenSSL Configure, disabling architecture-specific
+	  assembly implementations. Useful for debugging or unsupported
+	  platforms.
+
+	  If unsure, say N.
+
+config OPENSSL_NO_SHARED
+	bool "Build OpenSSL as static only"
+	default y
+	help
+	  Pass no-shared to OpenSSL Configure. When enabled, OpenSSL will
+	  not build shared libraries.
+
+config OPENSSL_NO_TESTS
+	bool "Skip OpenSSL test targets"
+	default y
+	help
+	  Pass no-tests to OpenSSL Configure, skipping the build of
+	  OpenSSL test programs.
+
+config OPENSSL_FIPS
+	bool "Enable OpenSSL FIPS mode"
+	default n
+	help
+	  Pass enable-fips to OpenSSL Configure.
+
+	  If unsure, say N.
+
+config OPENSSL_EXTRA_ARGS
+	string "Extra OpenSSL Configure arguments"
+	default ""
+	help
+	  Additional arguments passed verbatim to OpenSSL's ./Configure.
+	  For example: "no-ssl3 no-comp enable-ec_nistp_64_gcc_128"
+
+endmenu
+
+menu "Rustls options"
+
+config RUSTLS_DEBUG
+	bool "Build rustls in debug profile"
+	default n
+	help
+	  Build the vendored rustls (cargo) with the debug profile instead of
+	  release. Faster to compile, slower at runtime.
+
+	  If unsure, say N.
+
+config RUSTLS_CARGO_ARGS
+	string "rustls cargo build arguments"
+	default "-p rustls-bench"
+	help
+	  Arguments passed verbatim to `cargo build` for the vendored rustls.
+	  Defaults to building the rustls-bench benchmarking tool used by the
+	  TLS performance tests. For example: "-p rustls" for just the library.
+
+endmenu
+
+source "scripts/Kconfig.test"
+
+menu "Test options"
+
+config TEST_EVP_STATIC
+	bool "EVP digest benchmark (static link, noPIC)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked statically
+	  against libssl/libcrypto with -static -no-pie (noPIC).
+	  Triggers a vendor OpenSSL build if needed.
+
+config TEST_EVP_DYNAMIC
+	bool "EVP digest benchmark (shared library)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked against
+	  the shared libssl/libcrypto libraries.
+	  Triggers a vendor OpenSSL build if needed.
+
+config TEST_RUSTLS
+	bool "rustls TLS benchmark"
+	default n
+	help
+	  Build the vendored rustls (cargo) so it is available for the TLS
+	  performance tests. Triggers a rustls build during make check; see
+	  RUSTLS_CARGO_ARGS for what is built.
+
+	  If unsure, say N.
+
+endmenu
+
+source "$CRYPTO_DIR/modules/Kconfig"
+

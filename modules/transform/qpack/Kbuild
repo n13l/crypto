@@ -1,0 +1,11 @@
+# QPACK (RFC 9204) field decompression.
+#
+# Built in only, like hpack/ beside it: the decoder is reached by a direct
+# call from whatever holds the connection state, so there is nothing for the
+# module dispatcher to register and no DYN variant.
+#
+# static.h is generated from the RFC by rfc9204.py in this directory and is
+# checked in. The Huffman automaton is hpack's (../hpack/huffman.h): RFC 9204
+# §4.1.2 adopts RFC 7541 Appendix B unchanged, so there is one generator and
+# one table to trust.
+obj-$(CONFIG_CRYPTO_TRANSFORM_QPACK) += qpack.o
