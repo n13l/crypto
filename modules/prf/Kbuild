@@ -1,0 +1,8 @@
+obj-$(CONFIG_CRYPTO_PRF_SHA1) += sha1/
+obj-$(CONFIG_CRYPTO_PRF_SHA1_DYN) += sha1/
+
+obj-$(CONFIG_CRYPTO_PRF_SHA2) += sha2/
+obj-$(CONFIG_CRYPTO_PRF_SHA2_DYN) += sha2/
+
+obj-$(CONFIG_CRYPTO_PRF_SHA3) += sha3/
+obj-$(CONFIG_CRYPTO_PRF_SHA3_DYN) += sha3/

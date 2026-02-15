@@ -1,0 +1,7 @@
+obj-$(CONFIG_CRYPTO_SHA3_AWS_X86_64) += keccakf1600.o sha3_keccak_f1600-x86_64.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_X86_64) += sha3-aws-x86_64.o
+sha3-aws-x86_64-objs := keccakf1600.o sha3_keccak_f1600-x86_64.o
+
+AFLAGS_sha3_keccak_f1600-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include \
+	-I$(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include

@@ -1,2 +1,0 @@
-testprogs-y := digest
-LIBS_digest = modules/built-in.o

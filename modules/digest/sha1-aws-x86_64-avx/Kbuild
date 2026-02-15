@@ -1,0 +1,6 @@
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_AVX) += sha1_block.o sha1-x86_64.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_AVX) += sha1-aws-x86_64-avx.o
+sha1-aws-x86_64-avx-objs := sha1_block.o sha1-x86_64.o
+
+AFLAGS_sha1-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include

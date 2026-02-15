@@ -1,0 +1,15 @@
+# crypto performance benchmarks (digest, cipher, hmac, prf, hkdf).
+#
+# Each tool sweeps a geometric range of data-chunk sizes (small -> large) over
+# every configured algorithm, reporting throughput per size so the effect of a
+# different CONFIG (backend / implementation) is directly measurable. They link
+# the crypto algorithm archive and use libc for timing/output, so they are only
+# built for a hosted (CONFIG_CC_CLIB) toolchain.
+testprogs-$(CONFIG_CC_CLIB) := digest cipher hmac prf hkdf
+TEST_CFLAGS = -Wno-array-bounds -Wno-stringop-overread \
+	      -I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha3-ossl
+LIBS_digest = $(CRYPTO_MODULES)/built-in.o
+LIBS_cipher = $(CRYPTO_MODULES)/built-in.o
+LIBS_hmac   = $(CRYPTO_MODULES)/built-in.o
+LIBS_prf    = $(CRYPTO_MODULES)/built-in.o
+LIBS_hkdf   = $(CRYPTO_MODULES)/built-in.o

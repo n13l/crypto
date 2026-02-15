@@ -10,3 +10,6 @@
 [submodule "vendor/openssl"]
 	path = vendor/openssl
 	url = git@github.com:n13l/openssl.git
+[submodule "vendor/rustls"]
+	path = vendor/rustls
+	url = git@github.com:n13l/rustls.git

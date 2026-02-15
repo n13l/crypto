@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_HKDF_SHA2) += sha2.o
+endif
+obj-$(CONFIG_CRYPTO_HKDF_SHA2_DYN) += hkdf-sha2.o
+hkdf-sha2-objs := module.o

@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_HMAC_SHA2) += sha2.o
+endif
+obj-$(CONFIG_CRYPTO_HMAC_SHA2_DYN) += hmac-sha2.o
+hmac-sha2-objs := module.o

@@ -1,0 +1,6 @@
+obj-$(CONFIG_CRYPTO_SHA3_AWS_ARMV8) += keccakf1600.o keccak1600-armv8.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_ARMV8) += sha3-aws-armv8.o
+sha3-aws-armv8-objs := keccakf1600.o keccak1600-armv8.o
+
+AFLAGS_keccak1600-armv8.o := \
+	-I$(srctree)/vendor/aws-lc/include

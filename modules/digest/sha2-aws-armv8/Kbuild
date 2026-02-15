@@ -1,0 +1,9 @@
+obj-$(CONFIG_CRYPTO_SHA2_AWS_ARMV8) += sha256_block.o sha512_block.o sha256-armv8.o sha512-armv8.o
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_ARMV8) += sha2-aws-armv8.o
+sha2-aws-armv8-objs := sha256_block.o sha512_block.o sha256-armv8.o sha512-armv8.o
+
+AFLAGS_sha256-armv8.o := \
+	-I$(srctree)/vendor/aws-lc/include
+
+AFLAGS_sha512-armv8.o := \
+	-I$(srctree)/vendor/aws-lc/include

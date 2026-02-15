@@ -1,0 +1,23 @@
+# AES-128/256 (CBC + GCM) accelerated with aws-lc AES-NI + CLMUL GHASH asm.
+# The C glue is shared with the ARMv8 backend (../aes-aws); it is compiled here
+# with the CLMUL GHASH flavour (the default in internal.h). aesni-x86_64.S
+# references OPENSSL_ia32cap_P, so the weak/hidden cap object is linked in too.
+AES_AWS := $(srctree)/$(CRYPTO_DIR)/modules/cipher/aes-aws
+
+obj-$(CONFIG_CRYPTO_CIPHER_AES_AWS_X86_64) += aes-cbc.o gcm-aws.o \
+	aesni-x86_64.o ghash-x86_64.o aes-aws-x86cap.o
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_AWS_X86_64) += cipher-aes-aws-x86_64.o
+cipher-aes-aws-x86_64-objs := module.o aes-cbc.o gcm-aws.o \
+	aesni-x86_64.o ghash-x86_64.o aes-aws-x86cap.o
+
+$(obj)/aes-cbc.o: $(AES_AWS)/aes-cbc.c
+	$(call cmd,cc_o_c)
+$(obj)/gcm-aws.o: $(AES_AWS)/gcm-aws.c
+	$(call cmd,cc_o_c)
+$(obj)/aes-aws-x86cap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/x86-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_aes-cbc.o := -I$(AES_AWS)
+CFLAGS_gcm-aws.o := -I$(AES_AWS)
+AFLAGS_aesni-x86_64.o := -I$(srctree)/vendor/aws-lc/include
+AFLAGS_ghash-x86_64.o := -I$(srctree)/vendor/aws-lc/include

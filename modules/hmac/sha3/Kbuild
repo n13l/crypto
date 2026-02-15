@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_HMAC_SHA3) += sha3.o
+endif
+obj-$(CONFIG_CRYPTO_HMAC_SHA3_DYN) += hmac-sha3.o
+hmac-sha3-objs := module.o

@@ -6,9 +6,9 @@ offensive security research, and embedded systems programming.
 
 ## Why Intrusive?
 
-Writing high-performance code, designing offensive attack vectors, and
-developing for embedded systems are fundamentally similar disciplines. They all
-demand:
+Writing high-performance code, researching small-footprint cryptographic
+prototypes, and developing for embedded systems are fundamentally similar
+disciplines. They all demand:
 
 - **Intrusive operations** that embed crypto state directly into caller
   structures, eliminating indirection and pointer chasing.
@@ -22,9 +22,9 @@ demand:
   zeroization, and side-channel mitigations, because the library does not
   impose policy.
 
-These are the same constraints that make exploit payloads fast, make embedded
-firmware fit in constrained memory, and make HPC kernels saturate hardware
-throughput. This library is designed around them.
+These are the same constraints that make small-footprint cryptographic payloads
+efficient, make embedded firmware fit in constrained memory, and make HPC
+kernels saturate hardware throughput. This library is designed around them.
 
 ## Build System
 
@@ -52,9 +52,10 @@ When configured for dynamic module support, the library provides maximum
 modularity and flexibility:
 
 - Algorithm implementations are built as loadable shared objects (`.so`).
-- Multiple implementations (generic C, OpenSSL assembly, aws-lc assembly) can
-  coexist and be loaded at runtime.
-- Ideal for development, testing, benchmarking, and prototyping attack vectors.
+- Selected algorithms can still be built statically and inlined into the
+  caller, retaining full optimization even when dynamic module support is
+  enabled.
+- Multiple implementations can coexist and be loaded at runtime.
 
 ### Static Build (`CONFIG_MODULES` disabled)
 
@@ -74,6 +75,14 @@ The library can be built without any C library dependency. A minimal `nolibc`
 layer provides raw syscall wrappers for supported architectures (x86_64,
 ARM64, ARM, i386, s390, PowerPC), making it suitable for bare-metal firmware,
 bootloaders, and constrained embedded targets.
+
+## Async-Signal-Safe
+
+All code in this library is async-signal-safe, including all tracing and
+logging capabilities. Every function can be safely called from signal handlers,
+async callbacks, and concurrent contexts without risking deadlocks, undefined
+behavior, or corrupted state. No internal locks, heap allocations, or
+non-reentrant calls are used in any code path.
 
 ## Minimal Overhead Interface
 
@@ -96,16 +105,17 @@ performance and introduce potential side-channel vulnerabilities.
 
 Implements cryptographic and entropy-level hooks based on different types of
 signatures that are independent of specific implementations and act as a crypto
-operation state machine. This supports robust testing and prototyping of attack
-vectors, enhancing the robustness of security measures.
+operation state machine. This supports research, proof of concept development,
+and prototyping of focused crypto primitives without any additional
+complexities.
 
 ## Supported Algorithms
 
 | Family | Implementations |
 |--------|----------------|
 | SHA-3 (Keccak) | Generic C, OpenSSL assembly, aws-lc assembly |
-| SHA-2 (256/512) | OpenSSL assembly, aws-lc assembly |
-| SHA-1 | OpenSSL assembly, aws-lc assembly |
+| SHA-2 (256/512) | Generic C, OpenSSL assembly, aws-lc assembly |
+| SHA-1 | Generic C, OpenSSL assembly, aws-lc assembly |
 | HMAC | Via modules |
 | HKDF | Via modules |
 | PRF | Via modules |
@@ -144,8 +154,41 @@ rigorous formal verification.
 
 ## Build in Action
 
+```
+git clone git@github.com:n13l/crypto.git
+cd crypto/
+git submodule update --init
+```
+
 ![Demo](.github/assets/demo.gif)
 
-## License
+## Algorithm Expansion
 
-MIT. See [LICENSE](LICENSE).
+When the algorithm is known at build time, calling the typed API directly lets
+the compiler inline the entire implementation into the caller's hot path,
+eliminating function call overhead, vtable lookups, and all indirection.
+
+```c
+    u8 digest[SHA3_256_DIGEST_SIZE] = {};
+    struct sha3 sha3;
+
+    sha3_256_init(&sha3);
+    sha3_256_update(&sha3, (const u8 *)"", 0);
+    sha3_256_final(&sha3, digest);
+```
+
+## Branchless Constant-Time Dispatch (static module)
+
+When the algorithm is selected at runtime, the generic digest interface
+dispatches without function pointer calls or conditional branches. The
+dispatcher resolves to the correct implementation through a constant-time,
+branchless, streamlined array without misprediction penalties.
+
+```c
+    struct digest digest = {};
+    u8 out[MAX_DIGEST_SIZE];
+
+    digest_init(&digest, SHA3_256);
+    digest_update(&digest, (const u8 *)"", 0);
+    digest_final(&digest, out);
+```

@@ -1,0 +1,5 @@
+# AES-128/256 primitives (CBC, GCM). Table-based reference implementation;
+# built as separate objects in both modes (no built-in inlining).
+obj-$(CONFIG_CRYPTO_CIPHER_AES_GENERIC) += cbc128.o cbc256.o gcm.o
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_GENERIC) += cipher-aes.o
+cipher-aes-objs := module.o cbc128.o cbc256.o gcm.o

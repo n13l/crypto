@@ -1,0 +1,105 @@
+menu "HMAC algorithms"
+
+config CRYPTO_HMAC_SHA1
+	bool
+
+config CRYPTO_HMAC_SHA2
+	bool
+
+config CRYPTO_HMAC_SHA3
+	bool
+
+choice
+	prompt "HMAC-SHA-1 support"
+	depends on !MODULES
+	default CRYPTO_HMAC_SHA1_SEL_Y
+	help
+	  Enable or disable HMAC-SHA-1-160.
+
+config CRYPTO_HMAC_SHA1_SEL_N
+	bool "None"
+	help
+	  Do not include HMAC-SHA-1 support.
+
+config CRYPTO_HMAC_SHA1_SEL_Y
+	bool "HMAC-SHA-1"
+	depends on !MODULES
+	select CRYPTO_HMAC_SHA1
+	help
+	  HMAC-SHA-1-160 keyed-hash message authentication code.
+
+endchoice
+
+comment "HMAC-SHA-1 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HMAC_SHA1_DYN
+	tristate "HMAC-SHA-1"
+	depends on MODULES
+	default m
+	help
+	  HMAC-SHA-1-160 keyed-hash message authentication code.
+
+choice
+	prompt "HMAC-SHA-2 support"
+	depends on !MODULES
+	default CRYPTO_HMAC_SHA2_SEL_Y
+	help
+	  Enable or disable HMAC-SHA-224/256/384/512.
+
+config CRYPTO_HMAC_SHA2_SEL_N
+	bool "None"
+	help
+	  Do not include HMAC-SHA-2 support.
+
+config CRYPTO_HMAC_SHA2_SEL_Y
+	bool "HMAC-SHA-2"
+	depends on !MODULES
+	select CRYPTO_HMAC_SHA2
+	help
+	  HMAC-SHA-224/256/384/512 keyed-hash message authentication code.
+
+endchoice
+
+comment "HMAC-SHA-2 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HMAC_SHA2_DYN
+	tristate "HMAC-SHA-2"
+	depends on MODULES
+	default m
+	help
+	  HMAC-SHA-224/256/384/512 keyed-hash message authentication code.
+
+choice
+	prompt "HMAC-SHA-3 support"
+	depends on !MODULES
+	default CRYPTO_HMAC_SHA3_SEL_Y
+	help
+	  Enable or disable HMAC-SHA-3-224/256/384/512.
+
+config CRYPTO_HMAC_SHA3_SEL_N
+	bool "None"
+	help
+	  Do not include HMAC-SHA-3 support.
+
+config CRYPTO_HMAC_SHA3_SEL_Y
+	bool "HMAC-SHA-3"
+	depends on !MODULES
+	select CRYPTO_HMAC_SHA3
+	help
+	  HMAC-SHA-3-224/256/384/512 keyed-hash message authentication code.
+
+endchoice
+
+comment "HMAC-SHA-3 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HMAC_SHA3_DYN
+	tristate "HMAC-SHA-3"
+	depends on MODULES
+	default m
+	help
+	  HMAC-SHA-3-224/256/384/512 keyed-hash message authentication code.
+
+endmenu

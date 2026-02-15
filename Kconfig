@@ -33,8 +33,12 @@ config PACKAGE_NAME
 	option env="PACKAGE_NAME"
 
 config SRCTREE
-	string 
+	string
 	option env="srctree"
+
+config CRYPTO_DIR
+	string
+	option env="CRYPTO_DIR"
 
 menu "Architecture options"
 source "arch/$SRCARCH/Kconfig"
@@ -51,7 +55,7 @@ menu "Crypto options"
 
 config CRYPTO_VERIFIED
 	bool "Use only verified cryptography"
-	default y
+	default n
 	help
 	  When enabled, only formally verified or audited cryptographic
 	  implementations are available for selection. Currently this
@@ -100,5 +104,58 @@ config OPENSSL_EXTRA_ARGS
 
 endmenu
 
-source "modules/Kconfig"
+menu "Rustls options"
+
+config RUSTLS_DEBUG
+	bool "Build rustls in debug profile"
+	default n
+	help
+	  Build the vendored rustls (cargo) with the debug profile instead of
+	  release. Faster to compile, slower at runtime.
+
+	  If unsure, say N.
+
+config RUSTLS_CARGO_ARGS
+	string "rustls cargo build arguments"
+	default "-p rustls-bench"
+	help
+	  Arguments passed verbatim to `cargo build` for the vendored rustls.
+	  Defaults to building the rustls-bench benchmarking tool used by the
+	  TLS performance tests. For example: "-p rustls" for just the library.
+
+endmenu
+
+source "scripts/Kconfig.test"
+
+menu "Test options"
+
+config TEST_EVP_STATIC
+	bool "EVP digest benchmark (static link, noPIC)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked statically
+	  against libssl/libcrypto with -static -no-pie (noPIC).
+	  Triggers a vendor OpenSSL build if needed.
+
+config TEST_EVP_DYNAMIC
+	bool "EVP digest benchmark (shared library)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked against
+	  the shared libssl/libcrypto libraries.
+	  Triggers a vendor OpenSSL build if needed.
+
+config TEST_RUSTLS
+	bool "rustls TLS benchmark"
+	default n
+	help
+	  Build the vendored rustls (cargo) so it is available for the TLS
+	  performance tests. Triggers a rustls build during make check; see
+	  RUSTLS_CARGO_ARGS for what is built.
+
+	  If unsure, say N.
+
+endmenu
+
+source "$CRYPTO_DIR/modules/Kconfig"
 

@@ -1,0 +1,174 @@
+menu "Cipher algorithms"
+
+#
+# AES-128/256 (CBC, GCM)
+#
+config CRYPTO_CIPHER_AES
+	bool
+
+config CRYPTO_CIPHER_AES_GENERIC
+	bool
+	select CRYPTO_CIPHER_AES
+
+config CRYPTO_CIPHER_AES_AWS_X86_64
+	bool
+	select CRYPTO_CIPHER_AES
+
+config CRYPTO_CIPHER_AES_AWS_ARMV8
+	bool
+	select CRYPTO_CIPHER_AES
+
+choice
+	prompt "AES implementation"
+	depends on !MODULES
+	# No acceleration: portable C.
+	default CRYPTO_CIPHER_AES_SEL_GENERIC if CC_CPU_ACCEL_NONE
+	# Build-time: pinned to the configured target CPU.
+	default CRYPTO_CIPHER_AES_SEL_AWS_X86_64 if CC_CPU_ACCEL_BUILDTIME && SRCARCH = "x86"
+	default CRYPTO_CIPHER_AES_SEL_AWS_ARMV8 if CC_CPU_ACCEL_BUILDTIME && SRCARCH = "arm64"
+	# Runtime: aws-lc assembly (aes_hw_* run whenever the CPU has AES-NI/CE).
+	default CRYPTO_CIPHER_AES_SEL_AWS_X86_64 if CC_CPU_ACCEL_RUNTIME && SRCARCH = "x86"
+	default CRYPTO_CIPHER_AES_SEL_AWS_ARMV8 if CC_CPU_ACCEL_RUNTIME && SRCARCH = "arm64"
+	default CRYPTO_CIPHER_AES_SEL_GENERIC
+	help
+	  Select the AES-128/256 (CBC, GCM) implementation. Only one
+	  implementation can be active at a time.
+
+config CRYPTO_CIPHER_AES_SEL_N
+	bool "None"
+	help
+	  Do not include AES support.
+
+config CRYPTO_CIPHER_AES_SEL_GENERIC
+	bool "AES (generic)"
+	select CRYPTO_CIPHER_AES_GENERIC
+	help
+	  Portable table-based AES-128/256 (CBC and GCM modes).
+
+config CRYPTO_CIPHER_AES_SEL_AWS_X86_64
+	bool "AES (assembly, aws-lc, x86_64)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_CIPHER_AES_AWS_X86_64
+	help
+	  AES-128/256 using aws-lc AES-NI block/CTR/CBC assembly with CLMUL
+	  GHASH for GCM, on x86_64.
+
+config CRYPTO_CIPHER_AES_SEL_AWS_ARMV8
+	bool "AES (assembly, aws-lc, ARMv8)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_CIPHER_AES_AWS_ARMV8
+	help
+	  AES-128/256 using aws-lc ARMv8 Cryptography Extension assembly with
+	  PMULL GHASH for GCM.
+
+endchoice
+
+comment "AES module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_CIPHER_AES_DYN_GENERIC
+	tristate "AES (generic)"
+	depends on MODULES
+	default m
+	help
+	  Portable table-based AES-128/256 (CBC and GCM modes), loadable module.
+
+config CRYPTO_CIPHER_AES_DYN_AWS_X86_64
+	tristate "AES (assembly, aws-lc, x86_64)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "x86"
+	default m
+	help
+	  AES-128/256 aws-lc AES-NI + CLMUL GHASH assembly, loadable module.
+
+config CRYPTO_CIPHER_AES_DYN_AWS_ARMV8
+	tristate "AES (assembly, aws-lc, ARMv8)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	default m
+	help
+	  AES-128/256 aws-lc ARMv8 assembly, loadable module.
+
+#
+# ChaCha20-Poly1305 AEAD (RFC 7539)
+#
+config CRYPTO_CIPHER_CHACHA20
+	bool
+
+config CRYPTO_CIPHER_CHACHA20_GENERIC
+	bool
+	select CRYPTO_CIPHER_CHACHA20
+
+config CRYPTO_CIPHER_CHACHA20_AWS_X86_64
+	bool
+	select CRYPTO_CIPHER_CHACHA20
+
+config CRYPTO_CIPHER_CHACHA20_AWS_ARMV8
+	bool
+	select CRYPTO_CIPHER_CHACHA20
+
+choice
+	prompt "ChaCha20-Poly1305 implementation"
+	depends on !MODULES
+	default CRYPTO_CIPHER_CHACHA20_SEL_GENERIC if CC_CPU_ACCEL_NONE
+	default CRYPTO_CIPHER_CHACHA20_SEL_AWS_X86_64 if CC_CPU_ACCEL_BUILDTIME && SRCARCH = "x86"
+	default CRYPTO_CIPHER_CHACHA20_SEL_AWS_ARMV8 if CC_CPU_ACCEL_BUILDTIME && SRCARCH = "arm64"
+	default CRYPTO_CIPHER_CHACHA20_SEL_AWS_X86_64 if CC_CPU_ACCEL_RUNTIME && SRCARCH = "x86"
+	default CRYPTO_CIPHER_CHACHA20_SEL_AWS_ARMV8 if CC_CPU_ACCEL_RUNTIME && SRCARCH = "arm64"
+	default CRYPTO_CIPHER_CHACHA20_SEL_GENERIC
+	help
+	  Select the ChaCha20-Poly1305 AEAD implementation. Only one
+	  implementation can be active at a time.
+
+config CRYPTO_CIPHER_CHACHA20_SEL_N
+	bool "None"
+	help
+	  Do not include ChaCha20-Poly1305 support.
+
+config CRYPTO_CIPHER_CHACHA20_SEL_GENERIC
+	bool "ChaCha20-Poly1305 (generic)"
+	select CRYPTO_CIPHER_CHACHA20_GENERIC
+	help
+	  Portable ChaCha20 stream cipher with Poly1305 authenticator (RFC 7539).
+
+config CRYPTO_CIPHER_CHACHA20_SEL_AWS_X86_64
+	bool "ChaCha20-Poly1305 (assembly, aws-lc, x86_64)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "x86"
+	select CRYPTO_CIPHER_CHACHA20_AWS_X86_64
+	help
+	  ChaCha20 keystream accelerated with aws-lc x86_64 (SSSE3/AVX2)
+	  assembly; Poly1305 stays in portable C.
+
+config CRYPTO_CIPHER_CHACHA20_SEL_AWS_ARMV8
+	bool "ChaCha20-Poly1305 (assembly, aws-lc, ARMv8)"
+	depends on CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	select CRYPTO_CIPHER_CHACHA20_AWS_ARMV8
+	help
+	  ChaCha20 keystream accelerated with aws-lc ARMv8 NEON assembly;
+	  Poly1305 stays in portable C.
+
+endchoice
+
+comment "ChaCha20-Poly1305 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_CIPHER_CHACHA20_DYN_GENERIC
+	tristate "ChaCha20-Poly1305 (generic)"
+	depends on MODULES
+	default m
+	help
+	  Portable ChaCha20-Poly1305 (RFC 7539), loadable module.
+
+config CRYPTO_CIPHER_CHACHA20_DYN_AWS_X86_64
+	tristate "ChaCha20-Poly1305 (assembly, aws-lc, x86_64)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "x86"
+	default m
+	help
+	  ChaCha20 (x86_64 assembly) + Poly1305 (C), loadable module.
+
+config CRYPTO_CIPHER_CHACHA20_DYN_AWS_ARMV8
+	tristate "ChaCha20-Poly1305 (assembly, aws-lc, ARMv8)"
+	depends on MODULES && CC_CPU_ACCELERATION && SRCARCH = "arm64"
+	default m
+	help
+	  ChaCha20 (ARMv8 NEON assembly) + Poly1305 (C), loadable module.
+
+endmenu

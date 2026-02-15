@@ -1,0 +1,5 @@
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+obj-$(CONFIG_CRYPTO_PRF_SHA3) += sha3.o
+endif
+obj-$(CONFIG_CRYPTO_PRF_SHA3_DYN) += prf-sha3.o
+prf-sha3-objs := module.o

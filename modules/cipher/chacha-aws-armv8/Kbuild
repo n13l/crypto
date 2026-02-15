@@ -1,0 +1,24 @@
+# ChaCha20-Poly1305 with the ChaCha20 keystream accelerated by aws-lc ARMv8
+# NEON assembly; Poly1305 and the AEAD wrapper stay in portable C (reused from
+# the generic ../chacha backend). The dispatch reads OPENSSL_armcap_P, so the
+# weak/hidden armcap object is linked in too.
+CHACHA_AWS := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha-aws
+CHACHA_GEN := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha
+
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_ARMV8) += chacha-aws.o poly1305.o \
+	chachapoly.o chacha-armv8.o chacha-aws-armcap.o
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_ARMV8) += cipher-chacha-aws-armv8.o
+cipher-chacha-aws-armv8-objs := module.o chacha-aws.o poly1305.o \
+	chachapoly.o chacha-armv8.o chacha-aws-armcap.o
+
+$(obj)/chacha-aws.o: $(CHACHA_AWS)/chacha-aws.c
+	$(call cmd,cc_o_c)
+$(obj)/poly1305.o: $(CHACHA_GEN)/poly1305.c
+	$(call cmd,cc_o_c)
+$(obj)/chachapoly.o: $(CHACHA_GEN)/chachapoly.c
+	$(call cmd,cc_o_c)
+$(obj)/chacha-aws-armcap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/arm-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_chacha-aws.o := -I$(CHACHA_AWS)
+AFLAGS_chacha-armv8.o := -I$(srctree)/vendor/aws-lc/include

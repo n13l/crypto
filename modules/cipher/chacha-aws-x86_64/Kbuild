@@ -1,0 +1,24 @@
+# ChaCha20-Poly1305 with the ChaCha20 keystream accelerated by aws-lc x86_64
+# assembly; Poly1305 and the AEAD wrapper stay in portable C (reused from the
+# generic ../chacha backend). The dispatch reads OPENSSL_ia32cap_P, so the
+# weak/hidden cap object is linked in too.
+CHACHA_AWS := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha-aws
+CHACHA_GEN := $(srctree)/$(CRYPTO_DIR)/modules/cipher/chacha
+
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_AWS_X86_64) += chacha-aws.o poly1305.o \
+	chachapoly.o chacha-x86_64.o chacha-aws-x86cap.o
+obj-$(CONFIG_CRYPTO_CIPHER_CHACHA20_DYN_AWS_X86_64) += cipher-chacha-aws-x86_64.o
+cipher-chacha-aws-x86_64-objs := module.o chacha-aws.o poly1305.o \
+	chachapoly.o chacha-x86_64.o chacha-aws-x86cap.o
+
+$(obj)/chacha-aws.o: $(CHACHA_AWS)/chacha-aws.c
+	$(call cmd,cc_o_c)
+$(obj)/poly1305.o: $(CHACHA_GEN)/poly1305.c
+	$(call cmd,cc_o_c)
+$(obj)/chachapoly.o: $(CHACHA_GEN)/chachapoly.c
+	$(call cmd,cc_o_c)
+$(obj)/chacha-aws-x86cap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/x86-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_chacha-aws.o := -I$(CHACHA_AWS)
+AFLAGS_chacha-x86_64.o := -I$(srctree)/vendor/aws-lc/include

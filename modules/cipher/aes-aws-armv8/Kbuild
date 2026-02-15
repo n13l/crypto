@@ -1,0 +1,27 @@
+# AES-128/256 (CBC + GCM) accelerated with aws-lc ARMv8 Cryptography Extension
+# + PMULL GHASH assembly. The C glue is shared with the x86_64 backend
+# (../aes-aws); gcm-aws.c is compiled here with the PMULL/v8 GHASH flavour via
+# -D. The weak/hidden armcap object provides OPENSSL_armcap_P (populated under
+# runtime accel).
+AES_AWS := $(srctree)/$(CRYPTO_DIR)/modules/cipher/aes-aws
+
+obj-$(CONFIG_CRYPTO_CIPHER_AES_AWS_ARMV8) += aes-cbc.o gcm-aws.o \
+	aesv8-armx.o ghashv8-armx.o aes-aws-armcap.o
+obj-$(CONFIG_CRYPTO_CIPHER_AES_DYN_AWS_ARMV8) += cipher-aes-aws-armv8.o
+cipher-aes-aws-armv8-objs := module.o aes-cbc.o gcm-aws.o \
+	aesv8-armx.o ghashv8-armx.o aes-aws-armcap.o
+
+$(obj)/aes-cbc.o: $(AES_AWS)/aes-cbc.c
+	$(call cmd,cc_o_c)
+$(obj)/gcm-aws.o: $(AES_AWS)/gcm-aws.c
+	$(call cmd,cc_o_c)
+$(obj)/aes-aws-armcap.o: $(srctree)/$(CRYPTO_DIR)/modules/cpu/arm-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_aes-cbc.o := -I$(AES_AWS)
+CFLAGS_gcm-aws.o := -I$(AES_AWS) \
+	-DAES_AWS_GHASH_INIT=gcm_init_v8 \
+	-DAES_AWS_GHASH_GMULT=gcm_gmult_v8 \
+	-DAES_AWS_GHASH_GHASH=gcm_ghash_v8
+AFLAGS_aesv8-armx.o := -I$(srctree)/vendor/aws-lc/include
+AFLAGS_ghashv8-armx.o := -I$(srctree)/vendor/aws-lc/include
