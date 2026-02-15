@@ -144,8 +144,44 @@ rigorous formal verification.
 
 ## Build in Action
 
+```
+git clone git@github.com:n13l/crypto.git
+cd crypto/
+git submodule update --init
+```
+
 ![Demo](.github/assets/demo.gif)
 
-## License
+## Algorithm Expansion
 
-MIT. See [LICENSE](LICENSE).
+When the algorithm is known at build time, calling the typed API directly lets
+the compiler inline the entire implementation into the caller's hot path,
+eliminating function call overhead, vtable lookups, and all indirection.
+
+```c
+    u8 digest[SHA3_256_DIGEST_SIZE] = {};
+    struct sha3 sha3;
+
+    sha3_256_init(&sha3);
+    sha3_256_update(&sha3, (const u8 *)"", 0);
+    sha3_256_final(&sha3, digest);
+```
+
+## Branchless Constant-Time Dispatch (CONFIG_MODULES disabled)
+
+When the algorithm is selected at runtime, the generic digest interface
+dispatches without function pointer calls or conditional branches. The
+dispatcher resolves to the correct implementation through a constant-time,
+branchless, streamlined array without misprediction penalties.
+
+```c
+    struct digest digest = {};
+    u8 out[MAX_DIGEST_SIZE];
+
+    digest_init(&digest, SHA3_256);
+    digest_update(&digest, (const u8 *)"", 0);
+    digest_final(&digest, out);
+```
+
+
+
