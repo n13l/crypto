@@ -1,0 +1,104 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+mainmenu "$PACKAGE_NAME/$SRCARCH $ARCH $D $COMPILER Configuration on $PLATFORM"
+
+config ARCH 
+	string 
+	option env="ARCH"
+config SRCARCH
+	string
+	option env="SRCARCH"
+config SUBARCH
+        string
+        option env="SUBARCH"
+config HOST
+	string
+	option env="HOST"
+config TARGET
+        string
+        option env="TARGET"
+config PLATFORM
+	string
+	option env="PLATFORM"
+config DEBUG
+	string
+	option env="DEBUG"
+config COMPILER
+	string
+	option env="COMPILER"
+config PACKAGE_NAME
+	string
+	option env="PACKAGE_NAME"
+
+config SRCTREE
+	string 
+	option env="srctree"
+
+menu "Architecture options"
+source "arch/$SRCARCH/Kconfig"
+source "arch/Kconfig"
+endmenu
+
+menu "Build options"
+source "scripts/Kconfig.compiler"
+source "scripts/Kconfig.debug"
+
+endmenu
+
+menu "Crypto options"
+
+config CRYPTO_VERIFIED
+	bool "Use only verified cryptography"
+	default y
+	help
+	  When enabled, only formally verified or audited cryptographic
+	  implementations are available for selection. Currently this
+	  restricts algorithm choices to aws-lc provided implementations.
+
+	  If unsure, say N.
+
+config OPENSSL_NO_ASM
+	bool "Disable OpenSSL assembly optimizations"
+	default n
+	help
+	  Pass no-asm to OpenSSL Configure, disabling architecture-specific
+	  assembly implementations. Useful for debugging or unsupported
+	  platforms.
+
+	  If unsure, say N.
+
+config OPENSSL_NO_SHARED
+	bool "Build OpenSSL as static only"
+	default y
+	help
+	  Pass no-shared to OpenSSL Configure. When enabled, OpenSSL will
+	  not build shared libraries.
+
+config OPENSSL_NO_TESTS
+	bool "Skip OpenSSL test targets"
+	default y
+	help
+	  Pass no-tests to OpenSSL Configure, skipping the build of
+	  OpenSSL test programs.
+
+config OPENSSL_FIPS
+	bool "Enable OpenSSL FIPS mode"
+	default n
+	help
+	  Pass enable-fips to OpenSSL Configure.
+
+	  If unsure, say N.
+
+config OPENSSL_EXTRA_ARGS
+	string "Extra OpenSSL Configure arguments"
+	default ""
+	help
+	  Additional arguments passed verbatim to OpenSSL's ./Configure.
+	  For example: "no-ssl3 no-comp enable-ec_nistp_64_gcc_128"
+
+endmenu
+
+source "modules/Kconfig"
+

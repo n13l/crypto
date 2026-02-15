@@ -1,0 +1,256 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  linux-ubuntu-x86_64-modules:
+    name: Linux Ubuntu x86_64 dynamic modules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SPEED=y
+          CONFIG_CC_PIC=y
+          CONFIG_CC_STRIP=y
+          CONFIG_CC_STDLIB=y
+          CONFIG_CC_CLIB=y
+          CONFIG_MODULES=y
+          CONFIG_CRYPTO_SHA3_DYN_C=m
+          CONFIG_CRYPTO_SHA3_DYN_ASM=m
+          CONFIG_CRYPTO_SHA1_DYN_ASM=m
+          CONFIG_CRYPTO_SHA2_DYN_ASM=m
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest
+
+  linux-ubuntu-arm64-modules:
+    name: Linux Ubuntu arm64 dynamic modules
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SPEED=y
+          CONFIG_CC_PIC=y
+          CONFIG_CC_STRIP=y
+          CONFIG_CC_STDLIB=y
+          CONFIG_CC_CLIB=y
+          CONFIG_MODULES=y
+          CONFIG_CRYPTO_SHA3_DYN_C=m
+          CONFIG_CRYPTO_SHA3_DYN_ASM=m
+          CONFIG_CRYPTO_SHA1_DYN_ASM=m
+          CONFIG_CRYPTO_SHA2_DYN_ASM=m
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest
+
+  linux-ubuntu-arm64-speed:
+    name: Linux Ubuntu arm64 (optimized for speed)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SPEED=y
+          CONFIG_CC_CPU_ACCELERATION=y
+          CONFIG_CC_STRIP=y
+          CONFIG_CC_STDLIB=y
+          CONFIG_CC_CLIB=y
+          CONFIG_CRYPTO_VERIFIED=y
+          CONFIG_CRYPTO_SHA3_SEL_ASM=y
+          CONFIG_CRYPTO_SHA3_ASM=y
+          CONFIG_CRYPTO_SHA1_SEL_ASM=y
+          CONFIG_CRYPTO_SHA1_ASM=y
+          CONFIG_CRYPTO_SHA2_SEL_ASM=y
+          CONFIG_CRYPTO_SHA2_ASM=y
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest
+
+  linux-ubuntu-arm64-size:
+    name: Linux Ubuntu arm64 (optimized for size, minimal)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+          CONFIG_CC_CPU_ACCELERATION=y
+          CONFIG_CC_STRIP=y
+          # CONFIG_CC_STDLIB is not set
+          # CONFIG_CC_CLIB is not set
+          CONFIG_CRYPTO_VERIFIED=y
+          CONFIG_CRYPTO_SHA3_SEL_ASM=y
+          CONFIG_CRYPTO_SHA3_ASM=y
+          CONFIG_CRYPTO_SHA1_SEL_ASM=y
+          CONFIG_CRYPTO_SHA1_ASM=y
+          CONFIG_CRYPTO_SHA2_SEL_ASM=y
+          CONFIG_CRYPTO_SHA2_ASM=y
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest
+
+  linux-ubuntu-x86_64-speed:
+    name: Linux Ubuntu x86_64 (optimized for speed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SPEED=y
+          CONFIG_CC_CPU_ACCELERATION=y
+          CONFIG_CC_STRIP=y
+          CONFIG_CC_STDLIB=y
+          CONFIG_CC_CLIB=y
+          CONFIG_CRYPTO_VERIFIED=y
+          CONFIG_CRYPTO_SHA3_SEL_ASM=y
+          CONFIG_CRYPTO_SHA3_ASM=y
+          CONFIG_CRYPTO_SHA1_SEL_ASM=y
+          CONFIG_CRYPTO_SHA1_ASM=y
+          CONFIG_CRYPTO_SHA2_SEL_ASM=y
+          CONFIG_CRYPTO_SHA2_ASM=y
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest
+
+  linux-ubuntu-x86_64-size:
+    name: Linux Ubuntu x86_64 (optimized for size, minimal)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yq --no-install-recommends \
+            gperf flex bison libncurses-dev perl
+
+      - name: Configure
+        run: |
+          cat > defconfig <<'EOF'
+          CONFIG_CC_OPTIMIZE=y
+          CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+          CONFIG_CC_CPU_ACCELERATION=y
+          CONFIG_CC_STRIP=y
+          # CONFIG_CC_STDLIB is not set
+          # CONFIG_CC_CLIB is not set
+          CONFIG_CRYPTO_VERIFIED=y
+          CONFIG_CRYPTO_SHA3_SEL_ASM=y
+          CONFIG_CRYPTO_SHA3_ASM=y
+          CONFIG_CRYPTO_SHA1_SEL_ASM=y
+          CONFIG_CRYPTO_SHA1_ASM=y
+          CONFIG_CRYPTO_SHA2_SEL_ASM=y
+          CONFIG_CRYPTO_SHA2_ASM=y
+          EOF
+          make defconfig
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: |
+          ls -lah obj/test/digest
+          file obj/test/digest
+          obj/test/digest

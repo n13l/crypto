@@ -1,0 +1,20 @@
+obj-$(CONFIG_CRYPTO_SHA3_ASM) += keccakf1600.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_ASM) += sha3-aws.o
+sha3-aws-objs := keccakf1600.o
+
+ifeq ($(SRCARCH),arm64)
+obj-$(CONFIG_CRYPTO_SHA3_ASM) += keccak1600-armv8.o
+sha3-aws-objs += keccak1600-armv8.o
+endif
+
+ifeq ($(SRCARCH),x86)
+obj-$(CONFIG_CRYPTO_SHA3_ASM) += sha3_keccak_f1600-x86_64.o
+sha3-aws-objs += sha3_keccak_f1600-x86_64.o
+endif
+
+AFLAGS_keccak1600-armv8.o := \
+	-I$(srctree)/vendor/aws-lc/include
+
+AFLAGS_sha3_keccak_f1600-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include \
+	-I$(srctree)/vendor/aws-lc/third_party/s2n-bignum/s2n-bignum-imported/include

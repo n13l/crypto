@@ -1,0 +1,12 @@
+[submodule "vendor/kbuild"]
+	path = vendor/kbuild
+	url = git@github.com:n13l/kbuild.git
+[submodule "vendor/hpc"]
+	path = vendor/hpc
+	url = git@github.com:n13l/hpc.git
+[submodule "vendor/aws-lc"]
+	path = vendor/aws-lc
+	url = git@github.com:n13l/aws-lc.git
+[submodule "vendor/openssl"]
+	path = vendor/openssl
+	url = git@github.com:n13l/openssl.git

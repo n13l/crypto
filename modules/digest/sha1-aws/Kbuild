@@ -1,0 +1,19 @@
+obj-$(CONFIG_CRYPTO_SHA1_ASM) += sha1_block.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_ASM) += sha1-aws.o
+sha1-aws-objs := sha1_block.o
+
+ifeq ($(SRCARCH),arm64)
+obj-$(CONFIG_CRYPTO_SHA1_ASM) += sha1-armv8.o
+sha1-aws-objs += sha1-armv8.o
+endif
+
+ifeq ($(SRCARCH),x86)
+obj-$(CONFIG_CRYPTO_SHA1_ASM) += sha1-x86_64.o
+sha1-aws-objs += sha1-x86_64.o
+endif
+
+AFLAGS_sha1-armv8.o := \
+	-I$(srctree)/vendor/aws-lc/include
+
+AFLAGS_sha1-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include

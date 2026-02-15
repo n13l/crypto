@@ -1,0 +1,20 @@
+obj-$(CONFIG_CRYPTO_SHA3_OSSL) += keccakf1600.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL) += sha3-ossl.o module.o
+sha3-ossl-objs := keccakf1600.o module.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+ifeq ($(SRCARCH),arm64)
+obj-$(CONFIG_CRYPTO_SHA3_OSSL) += keccak1600-armv8.o
+sha3-ossl-objs += keccak1600-armv8.o
+AFLAGS_keccak1600-armv8.o := -I$(srctree)/vendor/openssl/crypto
+$(obj)/keccak1600-armv8.o: $(OSSL_SHA_ASM)/keccak1600-armv8.S
+	$(call cmd,as_o_S)
+endif
+
+ifeq ($(SRCARCH),x86)
+obj-$(CONFIG_CRYPTO_SHA3_OSSL) += keccak1600-x86_64.o
+sha3-ossl-objs += keccak1600-x86_64.o
+$(obj)/keccak1600-x86_64.o: $(OSSL_SHA_ASM)/keccak1600-x86_64.s
+	$(call cmd,as_o_S)
+endif
