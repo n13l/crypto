@@ -167,7 +167,7 @@ eliminating function call overhead, vtable lookups, and all indirection.
     sha3_256_final(&sha3, digest);
 ```
 
-## Branchless Constant-Time Dispatch (CONFIG_MODULES disabled)
+## Branchless Constant-Time Dispatch (static module)
 
 When the algorithm is selected at runtime, the generic digest interface
 dispatches without function pointer calls or conditional branches. The
