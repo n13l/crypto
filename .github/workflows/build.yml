@@ -36,7 +36,7 @@ jobs:
           CONFIG_CRYPTO_SHA1_DYN_ASM=m
           CONFIG_CRYPTO_SHA2_DYN_ASM=m
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -76,7 +76,7 @@ jobs:
           CONFIG_CRYPTO_SHA1_DYN_ASM=m
           CONFIG_CRYPTO_SHA2_DYN_ASM=m
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -118,7 +118,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -160,7 +160,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -202,7 +202,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
@@ -244,7 +244,7 @@ jobs:
           CONFIG_CRYPTO_SHA2_SEL_ASM=y
           CONFIG_CRYPTO_SHA2_ASM=y
           EOF
-          make defconfig
+          make olddefconfig
 
       - name: Build
         run: make -j$(nproc)
