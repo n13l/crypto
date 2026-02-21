@@ -55,8 +55,7 @@ modularity and flexibility:
 - Selected algorithms can still be built statically and inlined into the
   caller, retaining full optimization even when dynamic module support is
   enabled.
-- Multiple implementations (generic C, OpenSSL assembly, aws-lc assembly) can
-  coexist and be loaded at runtime.
+- Multiple implementations can coexist and be loaded at runtime.
 
 ### Static Build (`CONFIG_MODULES` disabled)
 
