@@ -51,7 +51,7 @@ menu "Crypto options"
 
 config CRYPTO_VERIFIED
 	bool "Use only verified cryptography"
-	default y
+	default n
 	help
 	  When enabled, only formally verified or audited cryptographic
 	  implementations are available for selection. Currently this
@@ -97,6 +97,26 @@ config OPENSSL_EXTRA_ARGS
 	help
 	  Additional arguments passed verbatim to OpenSSL's ./Configure.
 	  For example: "no-ssl3 no-comp enable-ec_nistp_64_gcc_128"
+
+endmenu
+
+menu "Test options"
+
+config TEST_EVP_STATIC
+	bool "EVP digest benchmark (static link, noPIC)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked statically
+	  against libssl/libcrypto with -static -no-pie (noPIC).
+	  Triggers a vendor OpenSSL build if needed.
+
+config TEST_EVP_DYNAMIC
+	bool "EVP digest benchmark (shared library)"
+	default n
+	help
+	  Build the OpenSSL EVP digest benchmark test linked against
+	  the shared libssl/libcrypto libraries.
+	  Triggers a vendor OpenSSL build if needed.
 
 endmenu
 

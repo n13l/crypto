@@ -1,0 +1,16 @@
+testprogs-y := digest
+testprogs-$(CONFIG_TEST_EVP_STATIC) += digest-ossl-evp-static
+testprogs-$(CONFIG_TEST_EVP_DYNAMIC) += digest-ossl-evp-dynamic
+
+TEST_CFLAGS = -Wno-array-bounds -Wno-stringop-overread
+LIBS_digest = modules/built-in.o
+
+OSSL_INSTALL := $(objtree)/vendor/openssl/install
+
+OSSL_LIBDIR := $(firstword $(wildcard $(OSSL_INSTALL)/lib64 $(OSSL_INSTALL)/lib))
+
+LDFLAGS_digest-ossl-evp-static = -static -no-pie -I$(OSSL_INSTALL)/include
+LIBS_digest-ossl-evp-static = $(OSSL_LIBDIR)/libssl.a $(OSSL_LIBDIR)/libcrypto.a -lpthread -ldl
+
+LDFLAGS_digest-ossl-evp-dynamic = -I$(OSSL_INSTALL)/include -L$(OSSL_LIBDIR) -Wl,-rpath,$(OSSL_LIBDIR)
+LIBS_digest-ossl-evp-dynamic = -lssl -lcrypto

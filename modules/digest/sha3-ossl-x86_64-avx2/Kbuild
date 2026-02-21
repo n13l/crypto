@@ -1,0 +1,10 @@
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_X86_64_AVX2) += keccakf1600.o keccak1600-avx2.o ossl_x86cap.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_X86_64_AVX2) += sha3-ossl-x86_64-avx2.o
+sha3-ossl-x86_64-avx2-objs := keccakf1600.o module.o keccak1600-avx2.o ossl_x86cap.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+$(obj)/keccak1600-avx2.o: $(OSSL_SHA_ASM)/keccak1600-avx2.S
+	$(call cmd,ossl_as_o_S)
+$(obj)/ossl_x86cap.o: $(srctree)/modules/cpu/x86-ossl/cap.c
+	$(call cmd,cc_o_c)

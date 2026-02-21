@@ -16,12 +16,20 @@ static const u8 sha3_256_empty[SHA3_256_DIGEST_SIZE] = {
 static int
 test_sha3_256(void)
 {
-	struct sha3 sha3;
 	u8 digest[SHA3_256_DIGEST_SIZE] = {};
 
+#ifdef __CRYPTO_DIGEST_SHA3_H__
+	struct sha3_ctx sha3;
+	sha3.sha = digest;
+	sha3_256_init(&sha3);
+	sha3_update(&sha3, (const u8 *)"", 0);
+	sha3_final(&sha3);
+#else
+	struct sha3 sha3;
 	sha3_256_init(&sha3);
 	sha3_update(&sha3, (const u8 *)"", 0);
 	sha3_final(&sha3, digest);
+#endif
 
 	for (unsigned int i = 0; i < SHA3_256_DIGEST_SIZE; i++)
 		if (digest[i] != sha3_256_empty[i])

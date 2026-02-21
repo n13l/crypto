@@ -1,0 +1,17 @@
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_X86_64) += sha1_block.o sha1-x86_64.o ossl_x86cap.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_X86_64) += sha1-ossl-x86_64.o
+sha1-ossl-x86_64-objs := sha1_block.o sha1-x86_64.o ossl_x86cap.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+$(obj)/sha1-x86_64.o: $(OSSL_SHA_ASM)/sha1-x86_64.s
+	$(call cmd,ossl_as_o_S)
+$(obj)/ossl_x86cap.o: $(srctree)/modules/cpu/x86-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_sha1_block.o := \
+	-I$(srctree)/modules/digest/sha1-ossl-x86_64 \
+	-I$(srctree)/vendor/openssl/include \
+	-I$(srctree)/vendor/openssl \
+	-I$(objtree)/vendor/openssl/include \
+	-DSHA1_ASM

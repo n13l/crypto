@@ -1,0 +1,109 @@
+menu "HKDF algorithms"
+
+config CRYPTO_HKDF_SHA1
+	bool
+
+config CRYPTO_HKDF_SHA2
+	bool
+
+config CRYPTO_HKDF_SHA3
+	bool
+
+choice
+	prompt "HKDF-SHA-1 support"
+	depends on !MODULES
+	default CRYPTO_HKDF_SHA1_SEL_Y
+	help
+	  Enable or disable HKDF-SHA-1-160 (RFC 5869).
+
+config CRYPTO_HKDF_SHA1_SEL_N
+	bool "None"
+	help
+	  Do not include HKDF-SHA-1 support.
+
+config CRYPTO_HKDF_SHA1_SEL_Y
+	bool "HKDF-SHA-1"
+	depends on !MODULES
+	select CRYPTO_HKDF_SHA1
+	help
+	  HKDF-SHA-1-160 HMAC-based key derivation function (RFC 5869).
+
+endchoice
+
+comment "HKDF-SHA-1 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HKDF_SHA1_DYN
+	tristate "HKDF-SHA-1"
+	depends on MODULES
+	default m
+	help
+	  HKDF-SHA-1-160 HMAC-based key derivation function (RFC 5869).
+
+choice
+	prompt "HKDF-SHA-2 support"
+	depends on !MODULES
+	default CRYPTO_HKDF_SHA2_SEL_Y
+	help
+	  Enable or disable HKDF-SHA-224/256/384/512 (RFC 5869).
+
+config CRYPTO_HKDF_SHA2_SEL_N
+	bool "None"
+	help
+	  Do not include HKDF-SHA-2 support.
+
+config CRYPTO_HKDF_SHA2_SEL_Y
+	bool "HKDF-SHA-2"
+	depends on !MODULES
+	select CRYPTO_HKDF_SHA2
+	help
+	  HKDF-SHA-224/256/384/512 HMAC-based key derivation function
+	  (RFC 5869).
+
+endchoice
+
+comment "HKDF-SHA-2 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HKDF_SHA2_DYN
+	tristate "HKDF-SHA-2"
+	depends on MODULES
+	default m
+	help
+	  HKDF-SHA-224/256/384/512 HMAC-based key derivation function
+	  (RFC 5869).
+
+choice
+	prompt "HKDF-SHA-3 support"
+	depends on !MODULES
+	default CRYPTO_HKDF_SHA3_SEL_Y
+	help
+	  Enable or disable HKDF-SHA-3-224/256/384/512 (RFC 5869).
+
+config CRYPTO_HKDF_SHA3_SEL_N
+	bool "None"
+	help
+	  Do not include HKDF-SHA-3 support.
+
+config CRYPTO_HKDF_SHA3_SEL_Y
+	bool "HKDF-SHA-3"
+	depends on !MODULES
+	select CRYPTO_HKDF_SHA3
+	help
+	  HKDF-SHA-3-224/256/384/512 HMAC-based key derivation function
+	  (RFC 5869).
+
+endchoice
+
+comment "HKDF-SHA-3 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_HKDF_SHA3_DYN
+	tristate "HKDF-SHA-3"
+	depends on MODULES
+	default m
+	help
+	  HKDF-SHA-3-224/256/384/512 HMAC-based key derivation function
+	  (RFC 5869).
+
+endmenu

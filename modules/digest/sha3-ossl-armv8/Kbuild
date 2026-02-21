@@ -1,0 +1,12 @@
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_ARMV8) += keccakf1600.o keccak1600-armv8.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_ARMV8) += sha3-ossl-armv8.o
+sha3-ossl-armv8-objs := keccakf1600.o module.o keccak1600-armv8.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+AFLAGS_keccak1600-armv8.o := -I$(srctree)/vendor/openssl/crypto
+$(OSSL_SHA_ASM)/keccak1600-armv8.S: $(srctree)/vendor/openssl/crypto/sha/asm/keccak1600-armv8.pl
+	@mkdir -p $(dir $@)
+	$(PERL) $< linux64 $@
+$(obj)/keccak1600-armv8.o: $(OSSL_SHA_ASM)/keccak1600-armv8.S
+	$(call cmd,as_o_S)

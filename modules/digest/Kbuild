@@ -1,0 +1,61 @@
+obj-y += digest_info.o
+
+obj-$(CONFIG_CRYPTO_SHA1_NULL) += sha1-null/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_NULL) += sha1-null/
+
+obj-$(CONFIG_CRYPTO_SHA1_GENERIC) += sha1/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_GENERIC) += sha1/
+
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_X86_64) += sha1-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_X86_64) += sha1-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_ARMV8) += sha1-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_ARMV8) += sha1-ossl-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64) += sha1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64) += sha1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_AVX) += sha1-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_AVX) += sha1-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_AVX2) += sha1-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_AVX2) += sha1-aws-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_X86_64_SHANI) += sha1-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_X86_64_SHANI) += sha1-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA1_AWS_ARMV8) += sha1-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS_ARMV8) += sha1-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA2_GENERIC) += sha2/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_GENERIC) += sha2/
+
+obj-$(CONFIG_CRYPTO_SHA2_NULL) += sha2-null/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_NULL) += sha2-null/
+
+obj-$(CONFIG_CRYPTO_SHA2_OSSL_X86_64) += sha2-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_OSSL_X86_64) += sha2-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_OSSL_ARMV8) += sha2-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_OSSL_ARMV8) += sha2-ossl-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64) += sha2-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64) += sha2-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64_AVX) += sha2-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64_AVX) += sha2-aws-x86_64-avx/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64_SHANI) += sha2-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64_SHANI) += sha2-aws-x86_64-shani/
+obj-$(CONFIG_CRYPTO_SHA2_AWS_ARMV8) += sha2-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_ARMV8) += sha2-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_SHA3) += sha3/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_C) += sha3/
+
+obj-$(CONFIG_CRYPTO_SHA3_NULL) += sha3-null/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_NULL) += sha3-null/
+
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_X86_64) += sha3-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_X86_64) += sha3-ossl-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_ARMV8) += sha3-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_ARMV8) += sha3-ossl-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_OSSL_X86_64_AVX2) += sha3-ossl-x86_64-avx2/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL_X86_64_AVX2) += sha3-ossl-x86_64-avx2/
+
+obj-$(CONFIG_CRYPTO_SHA3_AWS_X86_64) += sha3-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_X86_64) += sha3-aws-x86_64/
+obj-$(CONFIG_CRYPTO_SHA3_AWS_ARMV8) += sha3-aws-armv8/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_ARMV8) += sha3-aws-armv8/

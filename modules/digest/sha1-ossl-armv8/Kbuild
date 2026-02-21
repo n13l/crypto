@@ -1,0 +1,21 @@
+obj-$(CONFIG_CRYPTO_SHA1_OSSL_ARMV8) += sha1_block.o sha1-armv8.o armcap.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL_ARMV8) += sha1-ossl-armv8.o
+sha1-ossl-armv8-objs := sha1_block.o sha1-armv8.o armcap.o
+
+OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
+
+AFLAGS_sha1-armv8.o := -I$(srctree)/vendor/openssl/crypto
+$(OSSL_SHA_ASM)/sha1-armv8.S: $(srctree)/vendor/openssl/crypto/sha/asm/sha1-armv8.pl
+	@mkdir -p $(dir $@)
+	$(PERL) $< linux64 $@
+$(obj)/sha1-armv8.o: $(OSSL_SHA_ASM)/sha1-armv8.S
+	$(call cmd,as_o_S)
+$(obj)/armcap.o: $(srctree)/modules/cpu/arm-ossl/cap.c
+	$(call cmd,cc_o_c)
+
+CFLAGS_sha1_block.o := \
+	-I$(srctree)/modules/digest/sha1-ossl-armv8 \
+	-I$(srctree)/vendor/openssl/include \
+	-I$(srctree)/vendor/openssl \
+	-I$(objtree)/vendor/openssl/include \
+	-DSHA1_ASM

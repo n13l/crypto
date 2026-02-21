@@ -1,0 +1,2 @@
+obj-$(CONFIG_CRYPTO_HMAC_SHA2) += sha2.o
+obj-$(CONFIG_CRYPTO_HMAC_SHA2_DYN) += sha2.o

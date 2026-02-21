@@ -1,2 +1,3 @@
 testprogs-y := digest
+TEST_CFLAGS = -I$(srctree)/modules/digest/sha3-ossl
 LIBS_digest = modules/built-in.o

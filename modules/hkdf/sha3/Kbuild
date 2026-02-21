@@ -1,0 +1,2 @@
+obj-$(CONFIG_CRYPTO_HKDF_SHA3) += sha3.o
+obj-$(CONFIG_CRYPTO_HKDF_SHA3_DYN) += sha3.o

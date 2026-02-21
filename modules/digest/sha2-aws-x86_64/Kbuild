@@ -1,0 +1,9 @@
+obj-$(CONFIG_CRYPTO_SHA2_AWS_X86_64) += sha256_block.o sha512_block.o sha256-x86_64.o sha512-x86_64.o
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS_X86_64) += sha2-aws-x86_64.o
+sha2-aws-x86_64-objs := sha256_block.o sha512_block.o sha256-x86_64.o sha512-x86_64.o
+
+AFLAGS_sha256-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include
+
+AFLAGS_sha512-x86_64.o := \
+	-I$(srctree)/vendor/aws-lc/include

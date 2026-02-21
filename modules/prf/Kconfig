@@ -1,0 +1,105 @@
+menu "PRF algorithms"
+
+config CRYPTO_PRF_SHA1
+	bool
+
+config CRYPTO_PRF_SHA2
+	bool
+
+config CRYPTO_PRF_SHA3
+	bool
+
+choice
+	prompt "PRF-SHA-1 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA1_SEL_Y
+	help
+	  Enable or disable PRF-SHA-1-160.
+
+config CRYPTO_PRF_SHA1_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-1 support.
+
+config CRYPTO_PRF_SHA1_SEL_Y
+	bool "PRF-SHA-1"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA1
+	help
+	  PRF-SHA-1-160 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-1 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA1_DYN
+	tristate "PRF-SHA-1"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-1-160 pseudo-random function.
+
+choice
+	prompt "PRF-SHA-2 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA2_SEL_Y
+	help
+	  Enable or disable PRF-SHA-224/256/384/512.
+
+config CRYPTO_PRF_SHA2_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-2 support.
+
+config CRYPTO_PRF_SHA2_SEL_Y
+	bool "PRF-SHA-2"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA2
+	help
+	  PRF-SHA-224/256/384/512 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-2 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA2_DYN
+	tristate "PRF-SHA-2"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-224/256/384/512 pseudo-random function.
+
+choice
+	prompt "PRF-SHA-3 support"
+	depends on !MODULES
+	default CRYPTO_PRF_SHA3_SEL_Y
+	help
+	  Enable or disable PRF-SHA-3-224/256/384/512.
+
+config CRYPTO_PRF_SHA3_SEL_N
+	bool "None"
+	help
+	  Do not include PRF-SHA-3 support.
+
+config CRYPTO_PRF_SHA3_SEL_Y
+	bool "PRF-SHA-3"
+	depends on !MODULES
+	select CRYPTO_PRF_SHA3
+	help
+	  PRF-SHA-3-224/256/384/512 pseudo-random function.
+
+endchoice
+
+comment "PRF-SHA-3 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_PRF_SHA3_DYN
+	tristate "PRF-SHA-3"
+	depends on MODULES
+	default m
+	help
+	  PRF-SHA-3-224/256/384/512 pseudo-random function.
+
+endmenu
