@@ -6,9 +6,9 @@ offensive security research, and embedded systems programming.
 
 ## Why Intrusive?
 
-Writing high-performance code, designing offensive attack vectors, and
-developing for embedded systems are fundamentally similar disciplines. They all
-demand:
+Writing high-performance code, researching small-footprint cryptographic
+prototypes, and developing for embedded systems are fundamentally similar
+disciplines. They all demand:
 
 - **Intrusive operations** that embed crypto state directly into caller
   structures, eliminating indirection and pointer chasing.
@@ -22,9 +22,9 @@ demand:
   zeroization, and side-channel mitigations, because the library does not
   impose policy.
 
-These are the same constraints that make exploit payloads fast, make embedded
-firmware fit in constrained memory, and make HPC kernels saturate hardware
-throughput. This library is designed around them.
+These are the same constraints that make small-footprint cryptographic payloads
+efficient, make embedded firmware fit in constrained memory, and make HPC
+kernels saturate hardware throughput. This library is designed around them.
 
 ## Build System
 
@@ -52,9 +52,11 @@ When configured for dynamic module support, the library provides maximum
 modularity and flexibility:
 
 - Algorithm implementations are built as loadable shared objects (`.so`).
+- Selected algorithms can still be built statically and inlined into the
+  caller, retaining full optimization even when dynamic module support is
+  enabled.
 - Multiple implementations (generic C, OpenSSL assembly, aws-lc assembly) can
   coexist and be loaded at runtime.
-- Ideal for development, testing, benchmarking, and prototyping attack vectors.
 
 ### Static Build (`CONFIG_MODULES` disabled)
 
@@ -96,16 +98,17 @@ performance and introduce potential side-channel vulnerabilities.
 
 Implements cryptographic and entropy-level hooks based on different types of
 signatures that are independent of specific implementations and act as a crypto
-operation state machine. This supports robust testing and prototyping of attack
-vectors, enhancing the robustness of security measures.
+operation state machine. This supports research, proof of concept development,
+and prototyping of focused crypto primitives without any additional
+complexities.
 
 ## Supported Algorithms
 
 | Family | Implementations |
 |--------|----------------|
 | SHA-3 (Keccak) | Generic C, OpenSSL assembly, aws-lc assembly |
-| SHA-2 (256/512) | OpenSSL assembly, aws-lc assembly |
-| SHA-1 | OpenSSL assembly, aws-lc assembly |
+| SHA-2 (256/512) | Generic C, OpenSSL assembly, aws-lc assembly |
+| SHA-1 | Generic C, OpenSSL assembly, aws-lc assembly |
 | HMAC | Via modules |
 | HKDF | Via modules |
 | PRF | Via modules |
@@ -182,6 +185,3 @@ branchless, streamlined array without misprediction penalties.
     digest_update(&digest, (const u8 *)"", 0);
     digest_final(&digest, out);
 ```
-
-
-
