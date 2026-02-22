@@ -1,1 +1,1 @@
-obj-$(CONFIG_CRYPTO_SHA2_NULL) += module.o
+obj-$(CONFIG_CRYPTO_SHA2_NULL) += sha2-null.o

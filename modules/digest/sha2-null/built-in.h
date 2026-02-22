@@ -1,0 +1,4 @@
+#ifndef __OSS_CRYPTO_SHA2_NULL_BUILT_IN_H__
+#define __OSS_CRYPTO_SHA2_NULL_BUILT_IN_H__
+
+#endif
