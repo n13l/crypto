@@ -9,14 +9,14 @@ config CRYPTO_SHA3_NULL
 config CRYPTO_SHA3_OSSL
 	bool
 
-config CRYPTO_SHA3_ASM
+config CRYPTO_SHA3_AWS
 	bool
 
 choice
 	prompt "SHA-3 implementation"
 	depends on !MODULES
-	default CRYPTO_SHA3_SEL_ASM if CRYPTO_VERIFIED
-	default CRYPTO_SHA3_SEL_NULL
+	default CRYPTO_SHA3_SEL_AWS if CRYPTO_VERIFIED
+	default CRYPTO_SHA3_SEL_OSSL
 	help
 	  Select the SHA-3 digest implementation to use. Only one
 	  implementation can be active at a time.
@@ -28,7 +28,7 @@ config CRYPTO_SHA3_SEL_NULL
 	  Do not include SHA-3 support.
 
 config CRYPTO_SHA3_SEL_C
-	bool "SHA-3 (generic C)"
+	bool "SHA-3 (generic)"
 	depends on !MODULES && !CRYPTO_VERIFIED
 	select CRYPTO_SHA3
 	help
@@ -36,17 +36,17 @@ config CRYPTO_SHA3_SEL_C
 
 config CRYPTO_SHA3_SEL_OSSL
 	bool "SHA-3 (assembly, OpenSSL)"
-	depends on !MODULES && !CRYPTO_VERIFIED
+	depends on !MODULES && !CRYPTO_VERIFIED && CC_CPU_ACCELERATION
 	select CRYPTO_SHA3_OSSL
 	help
 	  SHA-3 Keccak-f[1600] using OpenSSL's platform-optimized C
 	  implementation.
 
-config CRYPTO_SHA3_SEL_ASM
+config CRYPTO_SHA3_SEL_AWS
 	bool "SHA-3 (assembly, aws-lc)"
-	depends on !MODULES
+	depends on !MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
-	select CRYPTO_SHA3_ASM
+	select CRYPTO_SHA3_AWS
 	help
 	  SHA-3 Keccak-f[1600] permutation using optimized assembly
 	  from aws-lc.
@@ -57,7 +57,7 @@ comment "SHA-3 modules (Y=built-in, M=module, N=disabled)"
 	depends on MODULES
 
 config CRYPTO_SHA3_DYN_C
-	tristate "SHA-3 (generic C)"
+	tristate "SHA-3 (generic)"
 	depends on MODULES && !CRYPTO_VERIFIED
 	default m
 	help
@@ -65,15 +65,15 @@ config CRYPTO_SHA3_DYN_C
 
 config CRYPTO_SHA3_DYN_OSSL
 	tristate "SHA-3 (assembly, OpenSSL)"
-	depends on MODULES && !CRYPTO_VERIFIED
+	depends on MODULES && !CRYPTO_VERIFIED && CC_CPU_ACCELERATION
 	default m
 	help
 	  SHA-3 Keccak-f[1600] using OpenSSL's platform-optimized C
 	  implementation.
 
-config CRYPTO_SHA3_DYN_ASM
+config CRYPTO_SHA3_DYN_AWS
 	tristate "SHA-3 (assembly, aws-lc)"
-	depends on MODULES
+	depends on MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	default m
 	help
@@ -86,36 +86,44 @@ config CRYPTO_SHA1_NULL
 config CRYPTO_SHA1_OSSL
 	bool
 
-config CRYPTO_SHA1_ASM
+config CRYPTO_SHA1_AWS
 	bool
 
 choice
 	prompt "SHA-1 implementation"
 	depends on !MODULES
-	default CRYPTO_SHA1_SEL_ASM if CRYPTO_VERIFIED
-	default CRYPTO_SHA1_SEL_OSSL
+	default CRYPTO_SHA1_SEL_AWS if CRYPTO_VERIFIED && CC_CPU_ACCELERATION
+	default CRYPTO_SHA1_SEL_OSSL if !CRYPTO_VERIFIED && CC_CPU_ACCELERATION
+	default CRPTTO_SHA1_SEL_GENERIC if !CC_CPU_ACCELERATION
 	help
 	  Select the SHA-1 digest implementation to use.
 
 config CRYPTO_SHA1_SEL_NULL
-	bool "None"
+	bool "SHA-1 (none)"
 	select CRYPTO_SHA1_NULL
 	help
 	  Do not include SHA-1 support.
 
+config CRYPTO_SHA1_SEL_GENERIC
+	bool "SHA-1 (generic)"
+	depends on !MODULES && !CC_CPU_ACCELERATION
+	select CRYPTO_SHA1_GENERIC
+	help
+	  Generic SHA-1 support.
+
 config CRYPTO_SHA1_SEL_OSSL
 	bool "SHA-1 (assembly, OpenSSL)"
-	depends on !MODULES
+	depends on !MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	select CRYPTO_SHA1_OSSL
 	help
 	  SHA-1 using OpenSSL's platform-optimized assembly.
 
-config CRYPTO_SHA1_SEL_ASM
+config CRYPTO_SHA1_SEL_AWS
 	bool "SHA-1 (assembly, aws-lc)"
-	depends on !MODULES
+	depends on !MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
-	select CRYPTO_SHA1_ASM
+	select CRYPTO_SHA1_AWS
 	help
 	  SHA-1 using optimized assembly from aws-lc.
 
@@ -124,17 +132,24 @@ endchoice
 comment "SHA-1 modules (Y=built-in, M=module, N=disabled)"
 	depends on MODULES
 
+config CRYPTO_SHA1_DYN_GENERIC
+	tristate "SHA-1 (generic)"
+        depends on MODULES
+	default n
+	help
+	  Generic SHA-1 support.
+
 config CRYPTO_SHA1_DYN_OSSL
 	tristate "SHA-1 (assembly, OpenSSL)"
-	depends on MODULES
+	depends on MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	default n
 	help
 	  SHA-1 using OpenSSL's platform-optimized assembly.
 
-config CRYPTO_SHA1_DYN_ASM
+config CRYPTO_SHA1_DYN_AWS
 	tristate "SHA-1 (assembly, aws-lc)"
-	depends on MODULES
+	depends on MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	default n
 	help
@@ -146,13 +161,13 @@ config CRYPTO_SHA2_NULL
 config CRYPTO_SHA2_OSSL
 	bool
 
-config CRYPTO_SHA2_ASM
+config CRYPTO_SHA2_AWS
 	bool
 
 choice
 	prompt "SHA-2 implementation"
 	depends on !MODULES
-	default CRYPTO_SHA2_SEL_ASM if CRYPTO_VERIFIED
+	default CRYPTO_SHA2_SEL_AWS if CRYPTO_VERIFIED
 	default CRYPTO_SHA2_SEL_OSSL
 	help
 	  Select the SHA-2 (SHA-256/SHA-512) digest implementation to use.
@@ -163,19 +178,25 @@ config CRYPTO_SHA2_SEL_NULL
 	help
 	  Do not include SHA-2 support.
 
+config CRYPTO_SHA2_SEL_GENERIC
+	bool "SHA-2 (generic)"
+	select CRYPTO_SHA2_GENERIC
+	help
+	  Generic SHA-2 support.
+
 config CRYPTO_SHA2_SEL_OSSL
 	bool "SHA-2 (assembly, OpenSSL)"
-	depends on !MODULES
+	depends on !MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	select CRYPTO_SHA2_OSSL
 	help
 	  SHA-256/SHA-512 using OpenSSL's platform-optimized assembly.
 
-config CRYPTO_SHA2_SEL_ASM
+config CRYPTO_SHA2_SEL_AWS
 	bool "SHA-2 (assembly, aws-lc)"
-	depends on !MODULES
+	depends on !MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
-	select CRYPTO_SHA2_ASM
+	select CRYPTO_SHA2_AWS
 	help
 	  SHA-256/SHA-512 using optimized assembly from aws-lc.
 
@@ -184,17 +205,24 @@ endchoice
 comment "SHA-2 modules (Y=built-in, M=module, N=disabled)"
 	depends on MODULES
 
+config CRYPTO_SHA2_DYN_GENERIC
+	tristate "SHA-2 (generic)"
+	depends on MODULES
+	default m
+	help
+	  SHA-256/SHA-512 using generic implementation.
+
 config CRYPTO_SHA2_DYN_OSSL
 	tristate "SHA-2 (assembly, OpenSSL)"
-	depends on MODULES
+	depends on MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	default m
 	help
 	  SHA-256/SHA-512 using OpenSSL's platform-optimized assembly.
 
-config CRYPTO_SHA2_DYN_ASM
+config CRYPTO_SHA2_DYN_AWS
 	tristate "SHA-2 (assembly, aws-lc)"
-	depends on MODULES
+	depends on MODULES && CC_CPU_ACCELERATION
 	depends on SRCARCH = "arm64" || SRCARCH = "x86"
 	default m
 	help

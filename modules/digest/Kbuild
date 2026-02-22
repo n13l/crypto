@@ -1,14 +1,14 @@
 obj-$(CONFIG_CRYPTO_SHA1_NULL) += sha1-null/
 obj-$(CONFIG_CRYPTO_SHA1_DYN_NULL) += sha1-null/
 
-obj-$(CONFIG_CRYPTO_SHA1) += sha1-null/
-obj-$(CONFIG_CRYPTO_SHA1_DYN) += sha1-null/
+obj-$(CONFIG_CRYPTO_SHA1_GENERIC) += sha1/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_generic) += sha1/
 
 obj-$(CONFIG_CRYPTO_SHA1_OSSL) += sha1-ossl/
 obj-$(CONFIG_CRYPTO_SHA1_DYN_OSSL) += sha1-ossl/
 
-obj-$(CONFIG_CRYPTO_SHA1_ASM) += sha1-aws/
-obj-$(CONFIG_CRYPTO_SHA1_DYN_ASM) += sha1-aws/
+obj-$(CONFIG_CRYPTO_SHA1_AWS) += sha1-aws/
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS) += sha1-aws/
 
 obj-$(CONFIG_CRYPTO_SHA2_NULL) += sha2-null/
 obj-$(CONFIG_CRYPTO_SHA2_DYN_NULL) += sha2-null/
@@ -16,8 +16,8 @@ obj-$(CONFIG_CRYPTO_SHA2_DYN_NULL) += sha2-null/
 obj-$(CONFIG_CRYPTO_SHA2_OSSL) += sha2-ossl/
 obj-$(CONFIG_CRYPTO_SHA2_DYN_OSSL) += sha2-ossl/
 
-obj-$(CONFIG_CRYPTO_SHA2_ASM) += sha2-aws/
-obj-$(CONFIG_CRYPTO_SHA2_DYN_ASM) += sha2-aws/
+obj-$(CONFIG_CRYPTO_SHA2_AWS) += sha2-aws/
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS) += sha2-aws/
 
 obj-$(CONFIG_CRYPTO_SHA3) += sha3/
 obj-$(CONFIG_CRYPTO_SHA3_DYN_C) += sha3/
@@ -28,7 +28,7 @@ obj-$(CONFIG_CRYPTO_SHA3_DYN_NULL) += sha3-null/
 obj-$(CONFIG_CRYPTO_SHA3_OSSL) += sha3-ossl/
 obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL) += sha3-ossl/
 
-obj-$(CONFIG_CRYPTO_SHA3_ASM) += sha3-aws/
-obj-$(CONFIG_CRYPTO_SHA3_DYN_ASM) += sha3-aws/
+obj-$(CONFIG_CRYPTO_SHA3_AWS) += sha3-aws/
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS) += sha3-aws/
 
 

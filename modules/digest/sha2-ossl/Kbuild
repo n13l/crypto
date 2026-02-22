@@ -5,15 +5,15 @@ sha2-ossl-objs := sha256_block.o sha512_block.o
 OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha
 
 ifeq ($(SRCARCH),arm64)
-obj-$(CONFIG_CRYPTO_SHA2_OSSL) += sha256-armv8.o sha512-armv8.o ossl_armcap.o
-sha2-ossl-objs += sha256-armv8.o sha512-armv8.o ossl_armcap.o
+obj-$(CONFIG_CRYPTO_SHA2_OSSL) += sha256-armv8.o sha512-armv8.o armcap.o
+sha2-ossl-objs += sha256-armv8.o sha512-armv8.o armcap.o
 AFLAGS_sha256-armv8.o := -I$(srctree)/vendor/openssl/crypto
 AFLAGS_sha512-armv8.o := -I$(srctree)/vendor/openssl/crypto
 $(obj)/sha256-armv8.o: $(OSSL_SHA_ASM)/sha256-armv8.S
 	$(call cmd,as_o_S)
 $(obj)/sha512-armv8.o: $(OSSL_SHA_ASM)/sha512-armv8.S
 	$(call cmd,as_o_S)
-$(obj)/ossl_armcap.o: $(srctree)/modules/cpu/arm-ossl/cap.c
+$(obj)/armcap.o: $(srctree)/modules/cpu/arm-ossl/cap.c
 	$(call cmd,cc_o_c)
 endif
 
