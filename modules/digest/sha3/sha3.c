@@ -20,7 +20,7 @@
 
 #define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
 
-static const uint64_t keccakf_rndc[24] = {
+static const u64 keccakf_rndc[24] = {
 	0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
 	0x8000000080008000ULL, 0x000000000000808bULL, 0x0000000080000001ULL,
 	0x8000000080008081ULL, 0x8000000000008009ULL, 0x000000000000008aULL,
@@ -42,10 +42,10 @@ static const int keccakf_piln[24] = {
 };
 
 static void _unused
-keccakf1600(uint64_t st[25])
+keccakf1600(u64 st[25])
 {
 	int i, j, round;
-	uint64_t t, bc[5];
+	u64 t, bc[5];
 
 	for (round = 0; round < KECCAK_ROUNDS; round++) {
 		for (i = 0; i < 5; i++)
