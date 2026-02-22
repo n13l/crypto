@@ -1,0 +1,1 @@
+obj-$(CONFIG_CRYPTO_SHA1_NULL) += module.o

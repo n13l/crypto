@@ -3,6 +3,9 @@ menu "Crypto modules"
 config CRYPTO_SHA3
 	bool
 
+config CRYPTO_SHA3_NULL
+	bool
+
 config CRYPTO_SHA3_OSSL
 	bool
 
@@ -13,13 +16,14 @@ choice
 	prompt "SHA-3 implementation"
 	depends on !MODULES
 	default CRYPTO_SHA3_SEL_ASM if CRYPTO_VERIFIED
-	default CRYPTO_SHA3_SEL_NONE
+	default CRYPTO_SHA3_SEL_NULL
 	help
 	  Select the SHA-3 digest implementation to use. Only one
 	  implementation can be active at a time.
 
-config CRYPTO_SHA3_SEL_NONE
+config CRYPTO_SHA3_SEL_NULL
 	bool "None"
+	select CRYPTO_SHA3_NULL
 	help
 	  Do not include SHA-3 support.
 
@@ -76,6 +80,9 @@ config CRYPTO_SHA3_DYN_ASM
 	  SHA-3 Keccak-f[1600] permutation using optimized assembly
 	  from aws-lc.
 
+config CRYPTO_SHA1_NULL
+	bool
+
 config CRYPTO_SHA1_OSSL
 	bool
 
@@ -90,8 +97,9 @@ choice
 	help
 	  Select the SHA-1 digest implementation to use.
 
-config CRYPTO_SHA1_SEL_NONE
+config CRYPTO_SHA1_SEL_NULL
 	bool "None"
+	select CRYPTO_SHA1_NULL
 	help
 	  Do not include SHA-1 support.
 
@@ -132,6 +140,9 @@ config CRYPTO_SHA1_DYN_ASM
 	help
 	  SHA-1 using optimized assembly from aws-lc.
 
+config CRYPTO_SHA2_NULL
+	bool
+
 config CRYPTO_SHA2_OSSL
 	bool
 
@@ -146,8 +157,9 @@ choice
 	help
 	  Select the SHA-2 (SHA-256/SHA-512) digest implementation to use.
 
-config CRYPTO_SHA2_SEL_NONE
+config CRYPTO_SHA2_SEL_NULL
 	bool "None"
+	select CRYPTO_SHA2_NULL
 	help
 	  Do not include SHA-2 support.
 
