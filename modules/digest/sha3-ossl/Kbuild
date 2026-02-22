@@ -1,5 +1,5 @@
 obj-$(CONFIG_CRYPTO_SHA3_OSSL) += keccakf1600.o
-obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL) += sha3-ossl.o module.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_OSSL) += sha3-ossl.o
 sha3-ossl-objs := keccakf1600.o module.o
 
 OSSL_SHA_ASM := $(objtree)/vendor/openssl/crypto/sha

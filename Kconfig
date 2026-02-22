@@ -51,7 +51,7 @@ menu "Crypto options"
 
 config CRYPTO_VERIFIED
 	bool "Use only verified cryptography"
-	default y
+	default n
 	help
 	  When enabled, only formally verified or audited cryptographic
 	  implementations are available for selection. Currently this
