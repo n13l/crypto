@@ -13,8 +13,8 @@
  *
  */
 
-#include <sys/compiler.h>
-#include <mem/unaligned.h>
+#include <hpc/compiler.h>
+#include <hpc/mem/unaligned.h>
 #include <string.h>
 #include <inttypes.h>
 
