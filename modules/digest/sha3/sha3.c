@@ -8,19 +8,52 @@
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
+ * Software Foundation; either version 2 of the License, or (at your option)•
  * any later version.
  *
  */
 
-#include <hpc/compiler.h>
+#include <sys/compiler.h>
+#include <mem/unaligned.h>
+#include <string.h>
 #include <inttypes.h>
+
+#define SHA3_224_DIGEST_SIZE	(224 / 8)
+#define SHA3_224_BLOCK_SIZE	(200 - 2 * SHA3_224_DIGEST_SIZE)
+
+#define SHA3_256_DIGEST_SIZE	(256 / 8)
+#define SHA3_256_BLOCK_SIZE	(200 - 2 * SHA3_256_DIGEST_SIZE)
+
+#define SHA3_384_DIGEST_SIZE	(384 / 8)
+#define SHA3_384_BLOCK_SIZE	(200 - 2 * SHA3_384_DIGEST_SIZE)
+
+#define SHA3_512_DIGEST_SIZE	(512 / 8)
+#define SHA3_512_BLOCK_SIZE	(200 - 2 * SHA3_512_DIGEST_SIZE)
+
+struct sha3_ctx {
+	uint64_t	st[25];
+	unsigned int	md_len;
+	unsigned int	rsiz;
+	unsigned int	rsizw;
+	unsigned int	partial;
+	u8		buf[SHA3_224_BLOCK_SIZE];
+	u8		*sha;
+};
+
+static void sha3_224_init(struct sha3_ctx *sctx);
+static void sha3_256_init(struct sha3_ctx *sctx);
+static void sha3_384_init(struct sha3_ctx *sctx);
+static void sha3_512_init(struct sha3_ctx *sctx);
+
+static int sha3_update(struct sha3_ctx *sctx, const u8 *data, unsigned int len);
+static void sha3_final(struct sha3_ctx *sctx);
+
 
 #define KECCAK_ROUNDS 24
 
 #define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
 
-static const u64 keccakf_rndc[24] = {
+static const uint64_t keccakf_rndc[24] = {
 	0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
 	0x8000000080008000ULL, 0x000000000000808bULL, 0x0000000080000001ULL,
 	0x8000000080008081ULL, 0x8000000000008009ULL, 0x000000000000008aULL,
@@ -41,13 +74,15 @@ static const int keccakf_piln[24] = {
 	15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1
 };
 
-static void _unused
-keccakf1600(u64 st[25])
+/* update the state with given number of rounds */
+static void
+keccakf(uint64_t st[25])
 {
 	int i, j, round;
-	u64 t, bc[5];
+	uint64_t t, bc[5];
 
 	for (round = 0; round < KECCAK_ROUNDS; round++) {
+		/* Theta */
 		for (i = 0; i < 5; i++)
 			bc[i] = st[i] ^ st[i + 5] ^ st[i + 10] ^ st[i + 15]
 				^ st[i + 20];
@@ -58,6 +93,7 @@ keccakf1600(u64 st[25])
 				st[j + i] ^= t;
 		}
 
+		/* Rho Pi */
 		t = st[1];
 		for (i = 0; i < 24; i++) {
 			j = keccakf_piln[i];
@@ -66,6 +102,7 @@ keccakf1600(u64 st[25])
 			t = bc[0];
 		}
 
+		/* Chi */
 		for (j = 0; j < 25; j += 5) {
 			for (i = 0; i < 5; i++)
 				bc[i] = st[j + i];
@@ -74,6 +111,98 @@ keccakf1600(u64 st[25])
 					     bc[(i + 2) % 5];
 		}
 
+		/* Iota */
 		st[0] ^= keccakf_rndc[round];
 	}
+}
+
+static void
+sha3_init(struct sha3_ctx *sctx, unsigned int digest_sz)
+{
+	memset(sctx->st, 0, sizeof(sctx->st));
+	sctx->md_len = digest_sz;
+	sctx->rsiz = 200 - 2 * digest_sz;
+	sctx->rsizw = sctx->rsiz / 8;
+	sctx->partial = 0;
+	memset(sctx->buf, 0, sizeof(sctx->buf));
+}
+
+static void
+sha3_224_init(struct sha3_ctx *sctx)
+{
+	sha3_init(sctx, SHA3_224_DIGEST_SIZE);
+}
+
+static void
+sha3_256_init(struct sha3_ctx *sctx)
+{
+	sha3_init(sctx, SHA3_256_DIGEST_SIZE);
+}
+
+static void
+sha3_384_init(struct sha3_ctx *sctx)
+{
+	sha3_init(sctx, SHA3_384_DIGEST_SIZE);
+}
+
+static void
+sha3_512_init(struct sha3_ctx *sctx)
+{
+	sha3_init(sctx, SHA3_512_DIGEST_SIZE);
+}
+
+static int
+sha3_update(struct sha3_ctx *sctx, const u8 *data, unsigned int len)
+{
+	unsigned int done;
+	const u8 *src;
+
+	done = 0;
+	src = data;
+
+	if ((sctx->partial + len) > (sctx->rsiz - 1)) {
+		if (sctx->partial) {
+			done = -sctx->partial;
+			memcpy(sctx->buf + sctx->partial, data,
+			       done + sctx->rsiz);
+			src = sctx->buf;
+		}
+
+		do {
+			unsigned int i;
+
+			for (i = 0; i < sctx->rsizw; i++)
+				sctx->st[i] ^= ((uint64_t *) src)[i];
+			keccakf(sctx->st);
+
+			done += sctx->rsiz;
+			src = data + done;
+		} while (done + (sctx->rsiz - 1) < len);
+
+		sctx->partial = 0;
+	}
+	memcpy(sctx->buf + sctx->partial, src, len - done);
+	sctx->partial += (len - done);
+
+	return 0;
+}
+
+static void
+sha3_final(struct sha3_ctx *sctx)
+{
+	unsigned int i, inlen = sctx->partial;
+
+	sctx->buf[inlen++] = 0x06;
+	memset(sctx->buf + inlen, 0, sctx->rsiz - inlen);
+	sctx->buf[sctx->rsiz - 1] |= 0x80;
+
+	for (i = 0; i < sctx->rsizw; i++)
+		sctx->st[i] ^= ((uint64_t *) sctx->buf)[i];
+
+	keccakf(sctx->st);
+
+	for (i = 0; i < sctx->rsizw; i++)
+		sctx->st[i] = cpu_le64(sctx->st[i]);
+
+	memcpy(sctx->sha, sctx->st, sctx->md_len);
 }
