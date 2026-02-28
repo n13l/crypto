@@ -76,6 +76,14 @@ layer provides raw syscall wrappers for supported architectures (x86_64,
 ARM64, ARM, i386, s390, PowerPC), making it suitable for bare-metal firmware,
 bootloaders, and constrained embedded targets.
 
+## Async-Signal-Safe
+
+All code in this library is async-signal-safe, including all tracing and
+logging capabilities. Every function can be safely called from signal handlers,
+async callbacks, and concurrent contexts without risking deadlocks, undefined
+behavior, or corrupted state. No internal locks, heap allocations, or
+non-reentrant calls are used in any code path.
+
 ## Minimal Overhead Interface
 
 - No buffer copies. The caller provides input and output buffers directly.

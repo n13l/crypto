@@ -1,5 +1,5 @@
 obj-$(CONFIG_CRYPTO_SHA3_ASM) += keccakf1600.o
-obj-$(CONFIG_CRYPTO_SHA3_DYN_ASM) += sha3-aws.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS) += sha3-aws.o
 sha3-aws-objs := keccakf1600.o
 
 ifeq ($(SRCARCH),arm64)

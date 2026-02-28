@@ -1,5 +1,5 @@
 obj-$(CONFIG_CRYPTO_SHA2) += sha2.o
-obj-$(CONFIG_CRYPTO_SHA2_DYN_C) += sha2.o
+obj-$(CONFIG_CRYPTO_SHA2_DYN_GENERIC) += sha2.o
 sha2-c-objs := sha2.o
 
 

@@ -1,5 +1,5 @@
 obj-$(CONFIG_CRYPTO_SHA1_ASM) += sha1_block.o
-obj-$(CONFIG_CRYPTO_SHA1_DYN_ASM) += sha1-aws.o
+obj-$(CONFIG_CRYPTO_SHA1_DYN_AWS) += sha1-aws.o
 sha1-aws-objs := sha1_block.o
 
 ifeq ($(SRCARCH),arm64)

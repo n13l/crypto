@@ -1,5 +1,5 @@
 obj-$(CONFIG_CRYPTO_SHA2_ASM) += sha256_block.o sha512_block.o
-obj-$(CONFIG_CRYPTO_SHA2_DYN_ASM) += sha2-aws.o
+obj-$(CONFIG_CRYPTO_SHA2_DYN_AWS) += sha2-aws.o
 sha2-aws-objs := sha256_block.o sha512_block.o
 
 ifeq ($(SRCARCH),arm64)

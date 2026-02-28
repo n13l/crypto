@@ -2,11 +2,10 @@
  * SHA-1 Hash Function (FIPS 180-1, RFC 3174)
  */
 
-#include <sys/compiler.h>
-#include <sys/cpu.h>
-#include <mem/unaligned.h>
+#include <hpc/compiler.h>
+#include <hpc/cpu.h>
+#include <hpc/mem/unaligned.h>
 #include <string.h>
-#include <crypto/digest.h>
 
 #define SHA1_MSG_SIZE 20
 #define SHA1_BLK_SIZE 64
@@ -31,7 +30,7 @@ sha1_zero(void)
 }
 
 static void
-sha1_init(struct digest *ctx)
+sha1_init(struct sha1 *ctx)
 {
 	struct sha1 *sha1 = (struct sha1*)ctx;
 
@@ -173,7 +172,7 @@ transform(struct sha1 *sha1, const u8 *data)
 }
 
 static void
-sha1_update(struct digest *ctx, const u8 *buf, unsigned int len)
+sha1_update(struct sha1 *ctx, const u8 *buf, unsigned int len)
 {
 	struct sha1 *sha1 = (struct sha1*)ctx;
 
@@ -189,7 +188,7 @@ sha1_update(struct digest *ctx, const u8 *buf, unsigned int len)
 	if( sha1->count ) {
 		for( ; len && sha1->count < 64; len-- )
 			sha1->buf[sha1->count++] = *buf++;
-		sha1_update( (struct digest *)sha1, NULL, 0 );
+		sha1_update( (struct sha1 *)sha1, NULL, 0 );
 		if( !len )
 			return;
 	}
@@ -207,7 +206,7 @@ sha1_update(struct digest *ctx, const u8 *buf, unsigned int len)
 }
 
 static void
-sha1_final(struct digest *ctx, u8 *digest)
+sha1_final(struct sha1 *ctx, u8 *digest)
 {
 	struct sha1 *sha1 = (struct sha1*)ctx;
 
@@ -236,7 +235,7 @@ sha1_final(struct digest *ctx, u8 *digest)
 		sha1->buf[sha1->count++] = 0x80; 
 		while (sha1->count < 64)
 			sha1->buf[sha1->count++] = 0;
-		sha1_update((struct digest*)sha1, NULL, 0);
+		sha1_update((struct sha1*)sha1, NULL, 0);
 		memset(sha1->buf, 0, 56); 
 	}
   
@@ -265,26 +264,7 @@ static void
 sha1_hash(const u8 *buf, unsigned int len, u8 *out)
 {
 	struct sha1 sha1;
-	sha1_init((struct digest *)&sha1);
-	sha1_update((struct digest*)&sha1, buf, len);
-	sha1_final((struct digest *)&sha1, out);
-}
-
-struct digest_algorithm sha1_160 = {
-	.msg_size = SHA1_MSG_SIZE,
-	.blk_size = SHA1_BLK_SIZE,
-	.ctx_size = sizeof(struct sha1),
-	.name = "sha1",
-	.desc = "sha1-160-generic",
-	.id = DIGEST_SHA256,
-	.init = sha1_init,
-	.update = sha1_update,
-	.digest = sha1_final,
-	.hash = sha1_hash,
-	.zero = sha1_zero
-};
-
-void crypto_init_digest_sha1(void)
-{
-	crypto_digest_register(&sha1_160);
+	sha1_init((struct sha1 *)&sha1);
+	sha1_update((struct sha1*)&sha1, buf, len);
+	sha1_final((struct sha1 *)&sha1, out);
 }
