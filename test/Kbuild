@@ -1,3 +1,8 @@
 testprogs-y := digest sort_merge
 TEST_CFLAGS = -I$(srctree)/modules/digest/sha3-ossl
 LIBS_digest = modules/built-in.o
+
+cmockatest-$(CONFIG_CMOCKA) := test_digest test_sort
+CMOCKA_CFLAGS = -I$(srctree)/modules/digest/sha3-ossl
+CMOCKA_LIBS_test_digest = modules/built-in.o
+CMOCKA_LIBS_test_sort = modules/built-in.o
