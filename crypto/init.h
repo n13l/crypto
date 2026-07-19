@@ -32,9 +32,10 @@ extern unsigned int __attribute__((weak)) OPENSSL_armcap_P;
 static inline void
 crypto_init(void)
 {
+	unsigned int *armcap = &OPENSSL_armcap_P;
 	unsigned long hwcap;
 
-	if (!&OPENSSL_armcap_P)
+	if (!armcap)
 		return;
 
 	hwcap = getauxval(AT_HWCAP);
