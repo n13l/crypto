@@ -1,0 +1,30 @@
+# TLS key-exchange groups (ECC / FFDHE / PQ hybrids), per-group modules.
+#
+# The registry (backend-independent storage + lookup) is compiled whenever any
+# group backend is enabled. Each backend directory registers its group(s) into
+# it: 'meta' registers identification metadata for the groups without a
+# dedicated compute module; 'x25519*' provide real key exchange (generic C
+# fallback + aws-lc s2n-bignum accelerated).
+obj-$(CONFIG_CRYPTO_GROUP)     += registry.o
+
+obj-$(CONFIG_CRYPTO_GROUP_META)     += meta/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_META) += meta/
+
+obj-$(CONFIG_CRYPTO_GROUP_X25519_GENERIC)     += x25519/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_GENERIC) += x25519/
+
+obj-$(CONFIG_CRYPTO_GROUP_X25519_AWS_X86_64)     += x25519-aws-x86_64/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_AWS_X86_64) += x25519-aws-x86_64/
+
+obj-$(CONFIG_CRYPTO_GROUP_X25519_AWS_ARMV8)     += x25519-aws-armv8/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_X25519_AWS_ARMV8) += x25519-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_GROUP_SECP256R1_AWS_X86_64)     += secp256r1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP256R1_AWS_X86_64) += secp256r1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_GROUP_SECP256R1_AWS_ARMV8)      += secp256r1-aws-armv8/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP256R1_AWS_ARMV8)  += secp256r1-aws-armv8/
+
+obj-$(CONFIG_CRYPTO_GROUP_SECP384R1_AWS_X86_64)     += secp384r1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP384R1_AWS_X86_64) += secp384r1-aws-x86_64/
+obj-$(CONFIG_CRYPTO_GROUP_SECP384R1_AWS_ARMV8)      += secp384r1-aws-armv8/
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SECP384R1_AWS_ARMV8)  += secp384r1-aws-armv8/

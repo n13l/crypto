@@ -3,3 +3,4 @@ obj-y += hmac/
 obj-y += hkdf/
 obj-y += prf/
 obj-y += cipher/
+obj-y += group/

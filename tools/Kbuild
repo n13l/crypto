@@ -6,13 +6,14 @@
 # on failure. CRYPTO_DIR names the package sources and CRYPTO_MODULES the
 # module build dir, so the paths work both standalone (./modules) and hosted
 # under a parent project.
-testprogs-y := digest cipher hmac prf hkdf
+testprogs-y := digest cipher hmac prf hkdf group
 TEST_CFLAGS = -I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha3-ossl
 LIBS_digest = $(CRYPTO_MODULES)/built-in.o
 LIBS_cipher = $(CRYPTO_MODULES)/built-in.o
 LIBS_hmac   = $(CRYPTO_MODULES)/built-in.o
 LIBS_prf    = $(CRYPTO_MODULES)/built-in.o
 LIBS_hkdf   = $(CRYPTO_MODULES)/built-in.o
+LIBS_group  = $(CRYPTO_MODULES)/built-in.o
 
 # Performance benchmarks live under testing/perf.
 subdir-y += testing/perf
