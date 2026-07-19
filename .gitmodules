@@ -13,3 +13,15 @@
 [submodule "vendor/rustls"]
 	path = vendor/rustls
 	url = git@github.com:n13l/rustls.git
+[submodule "vendor/bats-core"]
+	path = vendor/bats-core
+	url = git@github.com:n13l/bats-core.git
+[submodule "vendor/bats-assert"]
+	path = vendor/bats-assert
+	url = git@github.com:n13l/bats-assert.git
+[submodule "vendor/bats-file"]
+	path = vendor/bats-file
+	url = git@github.com:n13l/bats-file.git
+[submodule "vendor/bats-support"]
+	path = vendor/bats-support
+	url = git@github.com:n13l/bats-support.git

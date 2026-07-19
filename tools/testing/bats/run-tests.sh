@@ -17,12 +17,16 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 crypto_root="$(cd "${script_dir}/../../.." && pwd)"
 hpc_root="${crypto_root}/vendor/hpc"
 
-# Re-use the bats-core checkout shipped with the hpc submodule so we do not
-# require a second copy in crypto/vendor.
-bats_dir="${hpc_root}/vendor/bats-core"
-if [[ -x "${bats_dir}/bin/bats" ]]; then
-    export PATH="${bats_dir}/bin:${bats_dir}/libexec:${PATH}"
-fi
+# Resolve the single pinned bats-core. When crypto is consumed by the un
+# srctree, vendor/bats-core is a symlink up into un's one pinned copy
+# (un/vendor/bats-core). When crypto is built standalone, fall back to the
+# copy shipped with the hpc submodule so we still avoid a second checkout.
+for bats_dir in "${crypto_root}/vendor/bats-core" "${hpc_root}/vendor/bats-core"; do
+    if [[ -x "${bats_dir}/bin/bats" ]]; then
+        export PATH="${bats_dir}/bin:${bats_dir}/libexec:${PATH}"
+        break
+    fi
+done
 
 if ! command -v bats >/dev/null 2>&1; then
     echo "error: bats not found; init submodules or install bats-core" >&2
