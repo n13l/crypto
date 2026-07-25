@@ -157,8 +157,17 @@ rigorous formal verification.
 ```
 git clone git@github.com:n13l/crypto.git
 cd crypto/
-git submodule update --init
+./bootstrap.sh          # init submodules (kbuild, hpc, openssl, aws-lc, rustls, bats)
+make menuconfig         # or: make defconfig
+make -j$(nproc)
+make check
 ```
+
+`bootstrap.sh` initializes what a standalone build needs: `vendor/kbuild` (the
+build system — `scripts/`, `arch/` and `os/` are committed symlinks into it),
+`vendor/hpc` (the shared runtime, reached through the `hpc/` symlink), the
+OpenSSL and aws-lc sources the default backends build against, rustls for the
+TLS benchmark, and the bats framework for `make check`.
 
 ![Demo](.github/assets/demo.gif)
 
