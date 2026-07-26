@@ -12,9 +12,6 @@
 #define DIGEST_SHA2_IMPL_DESC "aws-lc, x86_64, SHA-NI"
 #endif
 
-#include "sha256_block.c"
-#include "sha512_block.c"
-
 #include <hpc/compiler.h>
 #include <hpc/mem/unaligned.h>
 #include <string.h>
@@ -50,6 +47,22 @@ struct sha512 {
 	} u;
 	unsigned int num, md_len;
 };
+
+extern void sha256_block_data_order_hw(struct sha256 *ctx, const void *in, size_t num);
+
+static inline void
+sha256_block_data_order(void *ctx, const void *in, size_t num)
+{
+	sha256_block_data_order_hw(ctx, in, num);
+}
+
+extern void sha512_block_data_order_nohw(struct sha512 *ctx, const void *in, size_t num);
+
+static inline void
+sha512_block_data_order(void *ctx, const void *in, size_t num)
+{
+	sha512_block_data_order_nohw(ctx, in, num);
+}
 
 static inline void
 arch_sha224_init(struct sha256 *c)

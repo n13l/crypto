@@ -12,8 +12,6 @@
 #define DIGEST_SHA1_IMPL_DESC "aws-lc, x86_64, SHA-NI"
 #endif
 
-#include "sha1_block.c"
-
 #include <string.h>
 #include <hpc/compiler.h>
 #include <hpc/mem/unaligned.h>
@@ -27,6 +25,14 @@ struct sha1 {
 	u32          data[16];
 	unsigned int num;
 };
+
+extern void sha1_block_data_order_hw(struct sha1 *c, const void *p, size_t num);
+
+static inline void
+sha1_block_data_order(void *c, const void *p, size_t num)
+{
+	sha1_block_data_order_hw(c, p, num);
+}
 
 static inline void
 arch_sha1_160_init(struct sha1 *c)
