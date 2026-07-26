@@ -26,12 +26,12 @@ struct sha1 {
 	unsigned int num;
 };
 
-extern void sha1_block_data_order_hw(struct sha1 *c, const void *p, size_t num);
+extern void sha1_block_data_order_nohw(struct sha1 *c, const void *p, size_t num);
 
 static inline void
 sha1_block_data_order(void *c, const void *p, size_t num)
 {
-	sha1_block_data_order_hw(c, p, num);
+	sha1_block_data_order_nohw(c, p, num);
 }
 
 static inline void

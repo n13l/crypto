@@ -48,20 +48,20 @@ struct sha512 {
 	unsigned int num, md_len;
 };
 
-extern void sha256_block_data_order_hw(struct sha256 *ctx, const void *in, size_t num);
+extern void sha256_block_data_order_nohw(struct sha256 *ctx, const void *in, size_t num);
 
 static inline void
 sha256_block_data_order(void *ctx, const void *in, size_t num)
 {
-	sha256_block_data_order_hw(ctx, in, num);
+	sha256_block_data_order_nohw(ctx, in, num);
 }
 
-extern void sha512_block_data_order_hw(struct sha512 *ctx, const void *in, size_t num);
+extern void sha512_block_data_order_nohw(struct sha512 *ctx, const void *in, size_t num);
 
 static inline void
 sha512_block_data_order(void *ctx, const void *in, size_t num)
 {
-	sha512_block_data_order_hw(ctx, in, num);
+	sha512_block_data_order_nohw(ctx, in, num);
 }
 
 static inline void
