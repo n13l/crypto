@@ -8,7 +8,7 @@ menu "Transforms (encodings, key material formats)"
 
 config CRYPTO_TRANSFORM_KEYLOG
 	bool "SSLKEYLOGFILE key log (draft-ietf-tls-keylogfile-05)"
-	default n
+	default y
 	help
 	  Parse the SSLKEYLOGFILE format into one global, read-only hash table
 	  keyed by the 32-byte ClientHello Random — the cnonce a TLS decoder
