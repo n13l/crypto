@@ -4,3 +4,4 @@ obj-y += hkdf/
 obj-y += prf/
 obj-y += cipher/
 obj-y += group/
+obj-y += transform/

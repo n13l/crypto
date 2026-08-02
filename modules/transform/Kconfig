@@ -1,0 +1,47 @@
+menu "Transforms (encodings, key material formats)"
+
+#
+# Transforms are the encodings and file formats around the algorithms: they
+# turn material produced elsewhere into something indexable. Nothing here
+# derives, protects or verifies anything.
+#
+
+config CRYPTO_TRANSFORM_KEYLOG
+	bool "SSLKEYLOGFILE key log (draft-ietf-tls-keylogfile-05)"
+	default n
+	help
+	  Parse the SSLKEYLOGFILE format into one global, read-only hash table
+	  keyed by the 32-byte ClientHello Random — the cnonce a TLS decoder
+	  already has once it has parsed a ClientHello — and look secrets up by
+	  (cnonce, label). Covers the TLS 1.3 traffic, handshake, early and
+	  exporter secrets, the TLS 1.2 CLIENT_RANDOM master secret, and the
+	  ECH_SECRET / ECH_CONFIG labels of the draft's ECH section.
+
+	  This is how a passive dissector decrypts a capture it has the secrets
+	  for: the protocol module asks this table instead of deriving from a
+	  private key it does not have. Loading is a one-time startup step
+	  (keylog_init() reads $SSLKEYLOGFILE); lookups afterwards take no lock.
+
+	  The table holds plaintext session secrets in this process's heap for
+	  as long as it runs, so anything that can read the process can read
+	  every session it decoded. Enable it for analysis builds; leave it off
+	  where that is not what you want to be true.
+
+	  If unsure, say N.
+
+config CRYPTO_TRANSFORM_KEYLOG_BITS
+	int "Key log hash table order (buckets = 2^n)"
+	range 4 20
+	default 12
+	depends on CRYPTO_TRANSFORM_KEYLOG
+	help
+	  Number of buckets in the key log table, as a power of two. The table
+	  is a bare array of queue heads, so it costs one pointer per bucket:
+	  the default 12 is 4096 buckets, 32 KB of bss, and keeps chains at one
+	  or two entries for the few thousand connections a capture's key log
+	  usually describes.
+
+	  Raise it for a log covering far more connections than that; there is
+	  no rehashing, so the chains simply grow.
+
+endmenu

@@ -6,5 +6,6 @@ source "$CRYPTO_DIR/modules/prf/Kconfig"
 source "$CRYPTO_DIR/modules/hkdf/Kconfig"
 source "$CRYPTO_DIR/modules/cipher/Kconfig"
 source "$CRYPTO_DIR/modules/group/Kconfig"
+source "$CRYPTO_DIR/modules/transform/Kconfig"
 
 endmenu
