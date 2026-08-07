@@ -15,5 +15,7 @@ LIBS_prf    = $(CRYPTO_MODULES)/built-in.o
 LIBS_hkdf   = $(CRYPTO_MODULES)/built-in.o
 LIBS_group  = $(CRYPTO_MODULES)/built-in.o
 
-# Performance benchmarks live under testing/perf.
+# Performance benchmarks live under testing/perf, unit tests under
+# testing/selftests/units (where the shared runner looks for them).
 subdir-y += testing/perf
+subdir-y += testing/selftests/units

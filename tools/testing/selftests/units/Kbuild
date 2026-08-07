@@ -1,0 +1,14 @@
+# crypto unit selftests.
+#
+# Sources drop the test_ prefix (the directory already says testing); the built
+# binaries keep it, because the shared runner discovers unit executables through
+# a tools/testing/selftests/units/test_* glob (scripts/run-check.sh), and the
+# bats suite next door runs each one as a case.
+#
+#   test_wire  the wire cursor (crypto/wire.h): the bounds tests every parser
+#              above it stands on, driven against an unmapped guard page so a
+#              read past the end of a run is a signal and not a silent pass.
+#              It links nothing - the cursor is a header of static inlines.
+cmockatest-y := test_wire
+
+test_wire-y := wire.o

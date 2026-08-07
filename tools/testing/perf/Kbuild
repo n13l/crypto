@@ -1,11 +1,15 @@
-# crypto performance benchmarks (digest, cipher, hmac, prf, hkdf).
+# crypto performance benchmarks (digest, cipher, hmac, prf, hkdf, wire).
 #
 # Each tool sweeps a geometric range of data-chunk sizes (small -> large) over
 # every configured algorithm, reporting throughput per size so the effect of a
 # different CONFIG (backend / implementation) is directly measurable. They link
 # the crypto algorithm archive and use libc for timing/output, so they are only
 # built for a hosted (CONFIG_CC_CLIB) toolchain.
-testprogs-$(CONFIG_CC_CLIB) := digest cipher hmac prf hkdf
+#
+# `wire` is the exception to all of that: crypto/wire.h is a header, so it
+# links nothing and has no algorithm to sweep. It sweeps the length of a
+# length-prefixed vector instead, which is the axis its two shapes differ on.
+testprogs-$(CONFIG_CC_CLIB) := digest cipher hmac prf hkdf wire
 TEST_CFLAGS = -Wno-array-bounds -Wno-stringop-overread \
 	      -I$(srctree)/$(CRYPTO_DIR)/modules/digest/sha3-ossl
 LIBS_digest = $(CRYPTO_MODULES)/built-in.o
