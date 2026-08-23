@@ -64,6 +64,8 @@ enum group_id {
 	GROUP_SECP521R1            = 0x0019,
 	GROUP_X25519               = 0x001d,
 	GROUP_X448                 = 0x001e,
+	/* The ShangMi curve (RFC 8998 sec 2, GB/T 32918.5) */
+	GROUP_CURVESM2             = 0x0029,
 	/* Finite-field DHE groups (RFC 7919) */
 	GROUP_FFDHE2048            = 0x0100,
 	GROUP_FFDHE3072            = 0x0101,
@@ -122,6 +124,17 @@ const char *crypto_group_name(unsigned int id);
 #define __CRYPTO_GROUP_BUILT_IN_READY__
 #ifdef CONFIG_CRYPTO_GROUP
 #include <modules/group/built-in.h>
+#endif
+
+/*
+ * curveSM2 is in the identification table (modules/group/meta) only while no
+ * compute backend owns it: the two would otherwise both register the code
+ * point, and which one the registry kept would be constructor order. The
+ * meta table reads this to know.
+ */
+#if defined(CONFIG_CRYPTO_GROUP_SM2) || defined(CONFIG_CRYPTO_GROUP_DYN_SM2) || \
+    defined(CONFIG_CRYPTO_GROUP_DYN_SM2_MODULE)
+#define CRYPTO_GROUP_SM2_OWNED 1
 #endif
 #undef __CRYPTO_GROUP_BUILT_IN_READY__
 #endif

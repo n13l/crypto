@@ -3,6 +3,15 @@
 
 #define __CRYPTO_DIGEST_SHA2_H__
 #define __MODULES_DIGEST_SHA2_H__
+/*
+ * The arch_sha2_* wrappers at the foot of this file are the real ones on
+ * either branch, so the fallback stubs in <modules/digest/sha2.h> must never
+ * be compiled beside them. It belongs up here with the other two guards
+ * because sha2.c includes that header itself: setting it on the inline branch
+ * alone left the size branch -- where sha2.c is a translation unit of its own
+ * -- compiling both sets.
+ */
+#define __CRYPTO_ARCH_SHA2_H__
 #define HAVE_DIGEST_SHA2_BUILT_IN 1
 
 #ifndef CONFIG_SILENT
@@ -77,7 +86,6 @@ void sha512(const u8 *msg, unsigned int len, u8 *digest);
 #else
 
 #define SHA2_SCOPE static inline
-#define __CRYPTO_ARCH_SHA2_H__
 #include "sha2.c"
 
 #endif

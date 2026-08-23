@@ -11,6 +11,7 @@ enum algorithm_digest {
 	ALGORITHM_SHA3_384 = 8,
 	ALGORITHM_SHA3_512 = 9,
 	ALGORITHM_MD5      = 10,
+	ALGORITHM_SM3      = 11,
 	ALGORITHM_DIGEST_LAST
 };
 
@@ -22,6 +23,12 @@ enum algorithm_digest {
 #define DIGEST_MD5_IMPL_DESC "generic"
 #else
 #define DIGEST_MD5_IMPL_DESC "none"
+#endif
+
+#if defined(CONFIG_CRYPTO_SM3)
+#define DIGEST_SM3_IMPL_DESC "generic"
+#else
+#define DIGEST_SM3_IMPL_DESC "none"
 #endif
 
 const char *
@@ -105,6 +112,14 @@ digest_get_desc(enum algorithm_digest id)
 #define DIGEST_MD5_IMPL_DESC "none"
 #endif
 
+/* SM3 implementation descriptor: one backend, off unless a build asked for
+ * the ShangMi TLS 1.3 suites. */
+#if defined(CONFIG_CRYPTO_SM3)
+#define DIGEST_SM3_IMPL_DESC "generic"
+#else
+#define DIGEST_SM3_IMPL_DESC "none"
+#endif
+
 const char *
 digest_get_name(enum algorithm_digest id)
 {
@@ -119,6 +134,7 @@ digest_get_name(enum algorithm_digest id)
 	case ALGORITHM_SHA3_384: return "sha3-384";
 	case ALGORITHM_SHA3_512: return "sha3-512";
 	case ALGORITHM_MD5:      return "md5";
+	case ALGORITHM_SM3:      return "sm3";
 	default:                return "";
 	}
 }
@@ -137,6 +153,7 @@ digest_get_desc(enum algorithm_digest id)
 	case ALGORITHM_SHA3_384: return "SHA3-384 (" DIGEST_SHA3_IMPL_DESC ")";
 	case ALGORITHM_SHA3_512: return "SHA3-512 (" DIGEST_SHA3_IMPL_DESC ")";
 	case ALGORITHM_MD5:      return "MD5 (" DIGEST_MD5_IMPL_DESC ")";
+	case ALGORITHM_SM3:      return "SM3 (" DIGEST_SM3_IMPL_DESC ")";
 	default:                return "";
 	}
 }

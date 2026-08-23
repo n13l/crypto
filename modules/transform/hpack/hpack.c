@@ -1,26 +1,3 @@
-/*
- * The MIT License (MIT)                     HPACK header compression (RFC 7541)
- *
- * Copyright (c) 2026                               Daniel Kubec <niel@rtfm.cz>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"),to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 
 #include <string.h>
 #include <hpc/compiler.h>
@@ -154,8 +131,6 @@ hpack_evict(struct hpack *h, unsigned int want)
 		h->evicted++;
 	}
 	if (!h->count) {
-		/* an empty table is the one chance to start the arena over,
-		 * which is what keeps the compaction below rare */
 		h->head = h->tail = 0;
 		h->used = 0;
 	}
@@ -170,7 +145,25 @@ hpack_turnover(struct hpack *h)
 	h->recovered = 1;
 }
 
-static void
+static int
+hpack_enlarge(struct hpack *h, unsigned int live, unsigned int need)
+{
+	unsigned int want = h->size ? h->size : 32;
+	void *mem;
+
+	if (!h->grow)
+		return HPACK_E_SPACE;
+	while (want < live + need || want < 32u * (h->count + 1))
+		want *= 2;
+	if (want > h->cap)
+		want = h->cap;
+	mem = h->grow(h->grow_arg, h->ent, HPACK_MEM(h->size), HPACK_MEM(want));
+	if (!mem || hpack_grow(h, mem, want))
+		return HPACK_E_SPACE;
+	return HPACK_OK;
+}
+
+static int
 hpack_insert(struct hpack *h, const u8 *name, unsigned int name_len,
              const u8 *value, unsigned int value_len)
 {
@@ -182,21 +175,29 @@ hpack_insert(struct hpack *h, const u8 *name, unsigned int name_len,
 	if (size > h->cap) {
 		hpack_evict(h, 0);
 		hpack_turnover(h);
-		return;
+		return HPACK_OK;
 	}
 	hpack_evict(h, h->cap - size);
 	if (h->evicted != ev)
 		hpack_turnover(h);
 
-	if (h->head + need > h->size) {
+	if (h->head + need > h->size || h->count + 1 > h->nent) {
 		unsigned int live = h->head - h->tail, i;
 
-		if (live)
+		if (live + need > h->size || h->count + 1 > h->nent) {
+			int rc = hpack_enlarge(h, live, need);
+
+			if (rc != HPACK_OK)
+				return rc;
+		} else if (live) {
 			memmove(h->buf, h->buf + h->tail, live);
-		for (i = 0; i < h->count; i++)
-			h->ent[(h->first + i) % h->nent].off -= h->tail;
-		h->tail = 0;
-		h->head = live;
+		}
+		if (h->tail) {
+			for (i = 0; i < h->count; i++)
+				h->ent[(h->first + i) % h->nent].off -= h->tail;
+			h->tail = 0;
+			h->head = live;
+		}
 	}
 
 	h->first = (h->first + h->nent - 1) % h->nent;
@@ -210,6 +211,7 @@ hpack_insert(struct hpack *h, const u8 *name, unsigned int name_len,
 	h->count++;
 	h->used += size;
 	h->inserted++;
+	return HPACK_OK;
 }
 
 static int
@@ -316,7 +318,7 @@ hpack_unresolved(struct hpack_field *f, unsigned int idx)
 void
 hpack_limit(struct hpack *h, unsigned int limit)
 {
-	if (limit > h->size)
+	if (limit > h->size && !h->grow)
 		limit = h->size;
 	h->limit = limit;
 	if (h->cap > limit) {
@@ -324,6 +326,56 @@ hpack_limit(struct hpack *h, unsigned int limit)
 		hpack_evict(h, h->cap);
 	}
 }
+
+void
+hpack_growable(struct hpack *h, hpack_mem_fn fn, void *arg)
+{
+	h->grow = fn;
+	h->grow_arg = arg;
+}
+
+static void
+hpack_reverse(struct hpack_ent *e, unsigned int lo, unsigned int hi)
+{
+	while (lo + 1 < hi) {
+		struct hpack_ent t = e[lo];
+
+		e[lo++] = e[--hi];
+		e[hi] = t;
+	}
+}
+
+int
+hpack_grow(struct hpack *h, void *mem, unsigned int cap)
+{
+	unsigned int onent = h->nent, nent = cap / 32 + 1, live, i;
+	struct hpack_ent *ent = (struct hpack_ent *)mem;
+	u8 *obuf = (u8 *)mem + (size_t)onent * sizeof(*ent);
+	u8 *buf = (u8 *)mem + (size_t)nent * sizeof(*ent);
+
+	if (!mem || cap < h->size)
+		return -1;
+
+	live = h->head - h->tail;
+	if (live)
+		memmove(buf, obuf + h->tail, live);
+
+	hpack_reverse(ent, 0, h->first);
+	hpack_reverse(ent, h->first, onent);
+	hpack_reverse(ent, 0, onent);
+	for (i = 0; i < h->count; i++)
+		ent[i].off -= h->tail;
+
+	h->ent = ent;
+	h->nent = nent;
+	h->buf = buf;
+	h->first = 0;
+	h->tail = 0;
+	h->head = live;
+	h->size = cap;
+	return 0;
+}
+
 
 static int
 hpack_literal(struct hpack *h, struct hpack_scratch *s, struct hpack_in *in,
@@ -368,7 +420,8 @@ hpack_literal(struct hpack *h, struct hpack_scratch *s, struct hpack_in *in,
 
 		memcpy(s->ins, f->name, n);
 		memcpy(s->ins + n, f->value, v);
-		hpack_insert(h, s->ins, n, s->ins + n, v);
+		if ((rc = hpack_insert(h, s->ins, n, s->ins + n, v)) != HPACK_OK)
+			return rc;
 		if (h->count) {
 			const struct hpack_ent *e = hpack_at(h, 0);
 
@@ -384,7 +437,7 @@ hpack_literal(struct hpack *h, struct hpack_scratch *s, struct hpack_in *in,
 	return HPACK_OK;
 }
 
-#define HPACK_WIRE_MAGIC	0x6b637068u	/* "hpck" */
+#define HPACK_WIRE_MAGIC	0x6b637068u
 #define HPACK_WIRE_VERSION	1
 
 struct hpack_wire {
@@ -492,7 +545,7 @@ hpack_recovery(struct hpack *h, void *mem, unsigned int size, const void *buf,
 
 	if (w.magic != HPACK_WIRE_MAGIC || w.version != HPACK_WIRE_VERSION ||
 	    w.len > len || w.size < 32 || w.size > size ||
-	    w.limit > w.size || w.cap > w.limit ||
+	    w.cap > w.size || w.cap > w.limit ||
 	    w.used > w.cap || w.count > w.used / 32 ||
 	    w.len != (u32)sizeof(w) +
 	             w.count * (u32)sizeof(struct hpack_wire_ent) +
@@ -516,8 +569,11 @@ hpack_recovery(struct hpack *h, void *mem, unsigned int size, const void *buf,
 			hpack_reset(h);
 			return -1;
 		}
-		hpack_insert(h, bytes, we.name_len, bytes + we.name_len,
-		             we.value_len);
+		if (hpack_insert(h, bytes, we.name_len, bytes + we.name_len,
+		                 we.value_len) != HPACK_OK) {
+			hpack_reset(h);
+			return -1;
+		}
 		bytes += n;
 		left -= n;
 	}
@@ -721,7 +777,6 @@ hpack_decode(struct hpack *h, struct hpack_scratch *s, const u8 *block,
 		memset(&f, 0, sizeof(f));
 
 		if (b & 0x80) {
-			/* §6.1 indexed header field */
 			unsigned int idx;
 
 			if ((rc = hpack_int(&in, 7, &idx)) != HPACK_OK)

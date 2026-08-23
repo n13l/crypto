@@ -1,0 +1,16 @@
+# ARIA (CBC, GCM), for the *_WITH_ARIA_* suites of RFC 6209. One backend,
+# portable C, off by default. GCM is the mode written once in ../gcm,
+# compiled here over this block cipher (gcm-backend.h).
+MODE_GCM := $(srctree)/$(CRYPTO_DIR)/modules/cipher/gcm
+
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA) += aria.o gcm.o
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA_DYN) += cipher-aria.o
+cipher-aria-objs := module.o aria.o gcm.o
+
+$(obj)/gcm.o: $(MODE_GCM)/gcm.c FORCE
+	$(call if_changed_rule,cc_o_c)
+
+CFLAGS_gcm.o := -I$(srctree)/$(CRYPTO_DIR)/modules/cipher/aria \
+		-DGCM_ENCRYPT_AAD=aria_gcm_encrypt_aad \
+		-DGCM_DECRYPT_AAD=aria_gcm_decrypt_aad \
+		-DGCM_ENCRYPT=aria_gcm_encrypt -DGCM_DECRYPT=aria_gcm_decrypt

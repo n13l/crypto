@@ -1,26 +1,3 @@
-/*
- * The MIT License (MIT)                     HPACK header compression (RFC 7541)
- *
- * Copyright (c) 2026                               Daniel Kubec <niel@rtfm.cz>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"),to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 
 #ifndef __CRYPTO_TRANSFORM_HPACK_H__
 #define __CRYPTO_TRANSFORM_HPACK_H__
@@ -73,6 +50,8 @@ struct hpack_field {
 
 typedef int (*hpack_fn)(void *ctx, const struct hpack_field *f);
 
+typedef void *(*hpack_mem_fn)(void *arg, void *mem, size_t old, size_t len);
+
 struct hpack_ent {
 	u32	off;
 	u16	name_len;
@@ -98,6 +77,8 @@ struct hpack {
 	u32		recovered;
 	u64		inserted;
 	u64		evicted;
+	hpack_mem_fn	grow;
+	void		*grow_arg;
 };
 
 struct hpack_scratch {
@@ -108,6 +89,10 @@ struct hpack_scratch {
 
 int hpack_init(struct hpack *h, void *mem, unsigned int cap);
 void hpack_reset(struct hpack *h);
+
+void hpack_growable(struct hpack *h, hpack_mem_fn fn, void *arg);
+
+int hpack_grow(struct hpack *h, void *mem, unsigned int cap);
 void hpack_partial(struct hpack *h);
 
 static inline int
@@ -165,4 +150,4 @@ hpack_entries(const struct hpack *h)
 
 __END_DECLS
 
-#endif/*__CRYPTO_TRANSFORM_HPACK_H__*/
+#endif

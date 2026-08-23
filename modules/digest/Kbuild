@@ -99,3 +99,8 @@ obj-$(CONFIG_CRYPTO_SHA3_DYN_AWS_ARMV8) += sha3-aws-armv8/
 # Off unless a build asked for the TLS 1.0/1.1 key schedule that needs it.
 obj-$(CONFIG_CRYPTO_MD5) += md5/
 obj-$(CONFIG_CRYPTO_MD5_DYN) += md5/
+
+# SM3, the same shape: one generic backend, off unless a build asked for the
+# ShangMi TLS 1.3 suites that hash under it.
+obj-$(CONFIG_CRYPTO_SM3) += sm3/
+obj-$(CONFIG_CRYPTO_SM3_DYN) += sm3/

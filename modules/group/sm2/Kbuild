@@ -1,0 +1,4 @@
+# curveSM2 (GB/T 32918) generic C ECDHE backend.
+obj-$(CONFIG_CRYPTO_GROUP_SM2)     += module.o
+obj-$(CONFIG_CRYPTO_GROUP_DYN_SM2) += crypto-group-sm2.o
+crypto-group-sm2-objs := module.o

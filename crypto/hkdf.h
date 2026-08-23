@@ -15,6 +15,9 @@ enum algorithm_hkdf {
 	HKDF_SHA3_256,
 	HKDF_SHA3_384,
 	HKDF_SHA3_512,
+	/* appended: the ShangMi TLS 1.3 key derivation (RFC 8998), off in
+	 * every default build */
+	HKDF_SM3,
 	HKDF_LAST
 };
 
@@ -49,6 +52,9 @@ struct hkdf_algorithm *crypto_hkdf_by_id(unsigned int id);
 #endif
 #ifdef CONFIG_CRYPTO_HKDF_SHA3
 #include <modules/hkdf/sha3/built-in.h>
+#endif
+#ifdef CONFIG_CRYPTO_HKDF_SM3
+#include <modules/hkdf/sm3/built-in.h>
 #endif
 #undef __CRYPTO_HKDF_BUILT_IN_READY__
 #endif

@@ -44,6 +44,7 @@ struct sha3_ctx {
 	u8		*sha;
 };
 
+SHA3_SCOPE void sha3_init(struct sha3_ctx *sctx, unsigned int digest_sz);
 SHA3_SCOPE void sha3_224_init(struct sha3_ctx *sctx);
 SHA3_SCOPE void sha3_256_init(struct sha3_ctx *sctx);
 SHA3_SCOPE void sha3_384_init(struct sha3_ctx *sctx);
@@ -120,7 +121,7 @@ keccakf(uint64_t st[25])
 	}
 }
 
-static void
+SHA3_SCOPE void
 sha3_init(struct sha3_ctx *sctx, unsigned int digest_sz)
 {
 	memset(sctx->st, 0, sizeof(sctx->st));

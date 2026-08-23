@@ -20,6 +20,9 @@ enum algorithm_hmac {
 	/* appended: the MD5 composition arrived with the TLS 1.0/1.1 support
 	 * and is off in every default build */
 	HMAC_MD5,
+	/* appended: the ShangMi composition, for the TLS 1.3 suites of
+	 * RFC 8998, and off in every default build too */
+	HMAC_SM3,
 	HMAC_LAST
 };
 
@@ -65,6 +68,9 @@ struct hmac_algorithm *crypto_hmac_by_id(unsigned int id);
 #endif
 #ifdef CONFIG_CRYPTO_HMAC_MD5
 #include <modules/hmac/md5/built-in.h>
+#endif
+#ifdef CONFIG_CRYPTO_HMAC_SM3
+#include <modules/hmac/sm3/built-in.h>
 #endif
 #undef __CRYPTO_HMAC_BUILT_IN_READY__
 #endif

@@ -1,7 +1,5 @@
-menu "TLS key-exchange groups (ECC / PQ)"
+menu "Key Exchange Groups (ECC / FFDHE / PQ)"
 
-#
-# TLS supported groups as per-group modules, following the digest subsystem's
 # layout: a portable generic-C fallback plus an aws-lc accelerated backend
 # (s2n-bignum assembly compiled directly, no OpenSSL/libcrypto). A separate
 # identification module registers metadata for the groups that do not yet have
@@ -188,6 +186,42 @@ config CRYPTO_GROUP_SECP384R1_SEL_AWS_ARMV8
 
 endchoice
 
+#
+# curveSM2 (GB/T 32918) key exchange: the group of the ShangMi TLS 1.3 suites
+# (RFC 8998). Generic C only -- s2n-bignum has no SM2 -- and off by default:
+# the passive decoder names the group from the identification table without
+# it, and this is the arithmetic for a tool that has a private key.
+#
+config CRYPTO_GROUP_SM2
+	bool
+
+config CRYPTO_GROUP_SM2_GENERIC
+	bool
+	select CRYPTO_GROUP_SM2
+	select CRYPTO_GROUP
+
+choice
+	prompt "curveSM2 implementation"
+	depends on !MODULES
+	default CRYPTO_GROUP_SM2_SEL_N
+	help
+	  Select the curveSM2 ECDHE implementation. None leaves the group as
+	  identification-only (via the group table above), which is all the
+	  passive decoder needs; configs/sm.config picks the generic C.
+
+config CRYPTO_GROUP_SM2_SEL_N
+	bool "None"
+
+config CRYPTO_GROUP_SM2_SEL_GENERIC
+	bool "curveSM2 (generic C)"
+	select CRYPTO_GROUP_SM2_GENERIC
+	help
+	  Portable curveSM2 ECDHE: Montgomery field arithmetic in four 64-bit
+	  limbs, Jacobian points, a constant-time-swap ladder. No assembly, no
+	  OpenSSL.
+
+endchoice
+
 comment "TLS group modules (Y=built-in, M=module, N=disabled)"
 	depends on MODULES
 
@@ -246,6 +280,14 @@ config CRYPTO_GROUP_DYN_SECP384R1_AWS_X86_64
 	default m
 	help
 	  aws-lc s2n-bignum x86_64 P-384, loadable module.
+
+config CRYPTO_GROUP_DYN_SM2
+	tristate "curveSM2 (generic C)"
+	depends on MODULES
+	select CRYPTO_GROUP
+	default n
+	help
+	  Portable curveSM2 key exchange, loadable module.
 
 config CRYPTO_GROUP_DYN_SECP384R1_AWS_ARMV8
 	tristate "secp384r1 (aws-lc s2n-bignum, ARMv8)"

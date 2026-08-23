@@ -9,3 +9,6 @@ obj-$(CONFIG_CRYPTO_PRF_SHA3_DYN) += sha3/
 
 obj-$(CONFIG_CRYPTO_PRF_TLS1) += tls1/
 obj-$(CONFIG_CRYPTO_PRF_TLS1_DYN) += tls1/
+
+obj-$(CONFIG_CRYPTO_PRF_SM3) += sm3/
+obj-$(CONFIG_CRYPTO_PRF_SM3_DYN) += sm3/

@@ -23,3 +23,17 @@ obj-$(CONFIG_CRYPTO_CIPHER_DES3_DYN) += des3/
 
 obj-$(CONFIG_CRYPTO_CIPHER_RC4) += rc4/
 obj-$(CONFIG_CRYPTO_CIPHER_RC4_DYN) += rc4/
+
+# SM4 (CBC, GCM, CCM): the ShangMi TLS 1.3 suites (RFC 8998). One backend,
+# no acceleration, off by default.
+obj-$(CONFIG_CRYPTO_CIPHER_SM4) += sm4/
+obj-$(CONFIG_CRYPTO_CIPHER_SM4_DYN) += sm4/
+
+# ARIA and Camellia (CBC, GCM): the other block ciphers of the TLS 1.2
+# registry (RFC 6209, RFC 5932, RFC 6367). Generic C, off by default. gcm/ is
+# the mode they and SM4 share, compiled per backend from each one's Kbuild,
+# and is not a directory of its own to enter.
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA) += aria/
+obj-$(CONFIG_CRYPTO_CIPHER_ARIA_DYN) += aria/
+obj-$(CONFIG_CRYPTO_CIPHER_CAMELLIA) += camellia/
+obj-$(CONFIG_CRYPTO_CIPHER_CAMELLIA_DYN) += camellia/

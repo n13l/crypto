@@ -11,9 +11,27 @@
 #define DIGEST_SHA1_IMPL_DESC "generic"
 #endif
 
-#ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+/*
+ * Public context type embedded by callers (and by HMAC/PRF, which hold four of
+ * them by value). The generic backend reinterprets it as its own struct
+ * sha1_ctx working state, so it must mirror that layout exactly; this
+ * definition is why the backend defines __MODULES_DIGEST_SHA1_H__ above, since
+ * it fully supersedes the fallback struct in <modules/digest/sha1.h>.
+ *
+ * It is defined out here rather than left to sha1.c because under
+ * CONFIG_CC_OPTIMIZE_FOR_SIZE that file is a translation unit of its own and
+ * is not included: the functions go out of line, but the type every caller
+ * embeds cannot.
+ */
+struct sha1 {
+	u32          h0, h1, h2, h3, h4;
+	u32          nblocks;
+	u8           buf[SHA1_BLOCK_SIZE];
+	int          count;
+	u8           hash[SHA1_DIGEST_SIZE];
+};
 
-struct sha1;
+#ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 
 void sha1_init(struct sha1 *ctx);
 void sha1_update(struct sha1 *ctx, const u8 *buf, unsigned int len);
@@ -24,6 +42,10 @@ void sha1_hash(const u8 *buf, unsigned int len, u8 *out);
 
 #define SHA1_SCOPE static inline
 #include "sha1.c"
+
+/* both shapes are visible on this branch, so let the compiler hold them to it */
+STATIC_ASSERT(sizeof(struct sha1) == sizeof(struct sha1_ctx),
+              "struct sha1 must mirror the generic backend's sha1_ctx");
 
 #endif
 

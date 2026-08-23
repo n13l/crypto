@@ -13,7 +13,8 @@
  * dedicated entry replace this one.
  *
  * x25519, secp256r1 and secp384r1 are intentionally absent: they are owned by
- * their dedicated compute backends.
+ * their dedicated compute backends. curveSM2 is here only while its backend
+ * (../sm2) is not configured in, which <crypto/ecc.h> settles at compile time.
  */
 
 #define __CRYPTO_GROUP_MODULE__
@@ -31,6 +32,12 @@ static struct group_algorithm meta_groups[] = {
 	  "secp521r1", "NIST P-521 ECDHE (identification)"),
 	G(GROUP_X448,      GROUP_CAT_ECDHE, 56,  56,  56, 1, 1,
 	  "x448", "Curve448 ECDHE (identification)"),
+#ifndef CRYPTO_GROUP_SM2_OWNED
+	/* the ShangMi curve (RFC 8998): named here until the generic
+	 * compute backend (../sm2) is configured, which then owns it */
+	G(GROUP_CURVESM2,  GROUP_CAT_ECDHE, 32,  65,  32, 1, 1,
+	  "curveSM2", "curveSM2 (GB/T 32918) ECDHE (identification)"),
+#endif
 
 	/* Finite-field DHE (RFC 7919) */
 	G(GROUP_FFDHE2048, GROUP_CAT_FFDHE, 256, 256, 256, 1, 1,

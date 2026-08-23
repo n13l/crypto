@@ -20,6 +20,9 @@ enum algorithm_prf {
 	/* not a P_hash: the TLS 1.0/1.1 construction, appended when that
 	 * support landed and off in every default build */
 	PRF_TLS1,
+	/* appended: P_hash over SM3, so the SM3 seam has the four shapes
+	 * SHA-2 has; no IANA suite names it (see modules/prf/sm3/sm3.c) */
+	PRF_SM3,
 	PRF_LAST
 };
 
@@ -62,6 +65,9 @@ struct prf_algorithm *crypto_prf_by_id(unsigned int id);
 #endif
 #ifdef CONFIG_CRYPTO_PRF_TLS1
 #include <modules/prf/tls1/built-in.h>
+#endif
+#ifdef CONFIG_CRYPTO_PRF_SM3
+#include <modules/prf/sm3/built-in.h>
 #endif
 #undef __CRYPTO_PRF_BUILT_IN_READY__
 #endif

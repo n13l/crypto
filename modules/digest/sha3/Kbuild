@@ -1,4 +1,12 @@
+# The generic backend goes out of line only under CC_OPTIMIZE_FOR_SIZE; every
+# other build gets it through built-in.h, which includes sha3.c and inlines it.
+#
+# The symbols are SHA-3's own names: the generic implementation is selected by
+# CRYPTO_SHA3_SEL_C and the loadable one by CRYPTO_SHA3_DYN_C, where sha1 and
+# sha2 spell the same two _GENERIC and _DYN_GENERIC. Naming theirs here left
+# both lines expanding to nothing, so a size build that selected the generic
+# SHA-3 compiled no implementation of it and did not link.
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-obj-$(CONFIG_CRYPTO_SHA3_GENERIC) += sha3.o
+obj-$(CONFIG_CRYPTO_SHA3_SEL_C) += sha3.o
 endif
-obj-$(CONFIG_CRYPTO_SHA3_DYN_GENERIC) += module.o
+obj-$(CONFIG_CRYPTO_SHA3_DYN_C) += module.o

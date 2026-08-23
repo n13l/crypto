@@ -63,3 +63,16 @@ setup_file() {
     [[ "${output}" == *"secp384r1-ecdh-r: ok"* ]]
     [[ "${output}" != *"FAIL"* ]]
 }
+
+# curveSM2 (RFC 8998 / GB/T 32918.5): generic C only and off in every default
+# build, so the tool reports it as skipped there; where it is configured
+# (configs/sm.config in un) the OpenSSL-computed agreement has to come out.
+@test "group: curveSM2 ECDH vectors and key-agreement round-trip" {
+    [ -n "${GROUP_BIN}" ] || skip "group binary not built (run: make test)"
+    run "${GROUP_BIN}"
+    [ "${status}" -eq 0 ]
+    [[ "${output}" != *"curvesm2-ecdh-i: skip"* ]] || skip "requires CONFIG_CRYPTO_GROUP_SM2=y"
+    [[ "${output}" == *"curvesm2-ecdh-i: ok"* ]]
+    [[ "${output}" == *"curvesm2-ecdh-r: ok"* ]]
+    [[ "${output}" == *"curvesm2-agree: ok"* ]]
+}

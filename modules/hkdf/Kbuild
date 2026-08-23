@@ -6,3 +6,6 @@ obj-$(CONFIG_CRYPTO_HKDF_SHA2_DYN) += sha2/
 
 obj-$(CONFIG_CRYPTO_HKDF_SHA3) += sha3/
 obj-$(CONFIG_CRYPTO_HKDF_SHA3_DYN) += sha3/
+
+obj-$(CONFIG_CRYPTO_HKDF_SM3) += sm3/
+obj-$(CONFIG_CRYPTO_HKDF_SM3_DYN) += sm3/

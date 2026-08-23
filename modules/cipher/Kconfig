@@ -247,4 +247,102 @@ config CRYPTO_CIPHER_RC4_DYN
 	help
 	  RC4-128 as a loadable module. See CRYPTO_CIPHER_RC4.
 
+#
+# SM4. The block cipher of the ShangMi TLS 1.3 suites (RFC 8998), in the two
+# AEAD modes those name and in CBC. One backend, generic C, off by default:
+# CONFIG_NET_TLS_SM in un selects it, configs/sm.config is the profile.
+#
+
+config CRYPTO_CIPHER_SM4
+	bool "SM4 (GB/T 32907; CBC, GCM, CCM, for the ShangMi TLS 1.3 suites)"
+	depends on !MODULES
+	default n
+	help
+	  SM4 (GB/T 32907-2016, ISO/IEC 18033-3), a 128-bit block cipher under
+	  a 128-bit key, for TLS_SM4_GCM_SM3 and TLS_SM4_CCM_SM3 (RFC 8998):
+	  GCM and CCM over it, with a 12-byte nonce and a 16-byte tag, which is
+	  what those two suites protect a record with. CBC is here for the
+	  GB/T 38636 suites a decoder for that protocol would need.
+
+	  One implementation, portable C, no assembly and no aws-lc variant.
+	  Like MD5 and 3DES beside it this is offered whatever
+	  CONFIG_CRYPTO_VERIFIED says, because the alternative is traffic
+	  that cannot be read at all; unlike them it is a current cipher and a
+	  channel that negotiated it is not a finding.
+
+	  If unsure, say N.
+
+comment "SM4 module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_CIPHER_SM4_DYN
+	tristate "SM4 (GB/T 32907; CBC, GCM, CCM, for the ShangMi TLS 1.3 suites)"
+	depends on MODULES
+	default n
+	help
+	  SM4 as a loadable module. See CRYPTO_CIPHER_SM4.
+
+#
+# ARIA and Camellia: the two other block ciphers the TLS 1.2 registry names
+# beside AES, each in CBC and GCM at 128 and 256 bits. Generic C only, so like
+# SM4 they are off by default and a CONFIG_CRYPTO_VERIFIED build has to ask;
+# configs/ciphers.config is the profile that asks for both.
+#
+
+config CRYPTO_CIPHER_ARIA
+	bool "ARIA (RFC 5794; CBC, GCM, for the *_WITH_ARIA_* suites)"
+	depends on !MODULES
+	default n
+	help
+	  ARIA (RFC 5794, KS X 1213), a 128-bit block cipher, for the TLS 1.2
+	  suites RFC 6209 registers: ARIA_128_GCM_SHA256, ARIA_256_GCM_SHA384
+	  and the CBC suites under every key exchange the registry has. GCM
+	  is what OpenSSL and the deployed servers negotiate; CBC is here
+	  because the registry names it.
+
+	  One implementation, portable C, no assembly and no aws-lc variant,
+	  offered whatever CONFIG_CRYPTO_VERIFIED says for the reason SM4 is.
+	  A current cipher: a channel that negotiated an ARIA GCM suite is
+	  not a finding, and the CBC suites are counted weak the way the AES
+	  CBC suites are, for the mode and not the cipher.
+
+	  If unsure, say N.
+
+comment "ARIA module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_CIPHER_ARIA_DYN
+	tristate "ARIA (RFC 5794; CBC, GCM, for the *_WITH_ARIA_* suites)"
+	depends on MODULES
+	default n
+	help
+	  ARIA as a loadable module. See CRYPTO_CIPHER_ARIA.
+
+config CRYPTO_CIPHER_CAMELLIA
+	bool "Camellia (RFC 3713; CBC, GCM, for the *_WITH_CAMELLIA_* suites)"
+	depends on !MODULES
+	default n
+	help
+	  Camellia (RFC 3713, ISO/IEC 18033-3), a 128-bit block cipher, for
+	  the TLS suites of RFC 5932 (CBC with SHA-1 and SHA-256) and RFC 6367
+	  (CBC with SHA-2, and GCM). The CBC suites are what OpenSSL still
+	  negotiates; the GCM suites are in the registry and in no current
+	  library, and are here because a capture from one that has them is
+	  the point of a decoder.
+
+	  One implementation, portable C, offered whatever
+	  CONFIG_CRYPTO_VERIFIED says for the reason SM4 and ARIA are.
+
+	  If unsure, say N.
+
+comment "Camellia module (Y=built-in, M=module, N=disabled)"
+	depends on MODULES
+
+config CRYPTO_CIPHER_CAMELLIA_DYN
+	tristate "Camellia (RFC 3713; CBC, GCM, for the *_WITH_CAMELLIA_* suites)"
+	depends on MODULES
+	default n
+	help
+	  Camellia as a loadable module. See CRYPTO_CIPHER_CAMELLIA.
+
 endmenu

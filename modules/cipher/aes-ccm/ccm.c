@@ -19,6 +19,17 @@
 #include <crypto/cipher/aes/ccm.h>
 #include <ccm-backend.h>
 
+/*
+ * The names the two entry points are defined under. AES is the default and
+ * the reason the file is where it is; a backend over another block cipher
+ * (modules/cipher/sm4) compiles this same file with its own names on the
+ * command line, so both can be linked into one image.
+ */
+#ifndef CCM_ENCRYPT_AAD
+#define CCM_ENCRYPT_AAD	aes_ccm_encrypt_aad
+#define CCM_DECRYPT_AAD	aes_ccm_decrypt_aad
+#endif
+
 #define CCM_BLOCK	16
 #define CCM_L		3	/* 15 - 12, fixed by the nonce length */
 
@@ -186,7 +197,7 @@ ccm_params_ok(int input_length, size_t key_len, size_t iv_len, size_t tag_len)
 }
 
 int
-aes_ccm_encrypt_aad(u8 *output, const u8 *input, int input_length,
+CCM_ENCRYPT_AAD(u8 *output, const u8 *input, int input_length,
 		    const u8 *aad, size_t aad_len,
 		    const u8 *key, size_t key_len,
 		    const u8 *iv, size_t iv_len, size_t tag_len)
@@ -212,7 +223,7 @@ aes_ccm_encrypt_aad(u8 *output, const u8 *input, int input_length,
 }
 
 int
-aes_ccm_decrypt_aad(u8 *output, const u8 *input, int input_length,
+CCM_DECRYPT_AAD(u8 *output, const u8 *input, int input_length,
 		    const u8 *aad, size_t aad_len,
 		    const u8 *key, size_t key_len,
 		    const u8 *iv, size_t iv_len, size_t tag_len)

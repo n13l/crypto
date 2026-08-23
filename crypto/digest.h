@@ -25,6 +25,13 @@ enum algorithm_digest {
 	 * build, so the dispatches below carry a case that folds away.
 	 */
 	ALGORITHM_MD5      = 10,
+	/*
+	 * Appended for the same reason: SM3 is the hash of the ShangMi TLS 1.3
+	 * suites (RFC 8998, modules/digest/sm3/sm3.c) and is off in every
+	 * default build. A 256-bit digest over 64-byte blocks, so it is the
+	 * SHA-256 shape at every seam that sizes something by it.
+	 */
+	ALGORITHM_SM3      = 11,
 	ALGORITHM_DIGEST_LAST
 };
 
@@ -60,6 +67,7 @@ const char *digest_get_desc(enum algorithm_digest id);
 #include <modules/digest/sha2.h>
 #include <modules/digest/sha3.h>
 #include <modules/digest/md5.h>
+#include <modules/digest/sm3.h>
 
 #ifndef __CRYPTO_DIGEST_SHA1_H__
 
@@ -197,6 +205,28 @@ md5_final(struct md5 *ctx, u8 *out)
 
 #endif
 
+#ifndef __CRYPTO_DIGEST_SM3_H__
+
+static inline void
+sm3_init(struct sm3 *ctx)
+{
+	arch_sm3_init(ctx);
+}
+
+static inline void
+sm3_update(struct sm3 *ctx, const u8 *data, unsigned int len)
+{
+	arch_sm3_update(ctx, data, len);
+}
+
+static inline void
+sm3_final(struct sm3 *ctx, u8 *out)
+{
+	arch_sm3_final(ctx, out);
+}
+
+#endif
+
 /*
  * Digest dispatch: a switch over the *dense* enum algorithm_digest (values
  * 1..9). Density lets the compiler pick the best lowering and fully inline it
@@ -223,6 +253,7 @@ digest_init(struct digest *d, enum algorithm_digest algo)
 	case ALGORITHM_SHA3_384: arch_sha3_init((struct sha3 *)d, SHA3_384_DIGEST_SIZE); return;
 	case ALGORITHM_SHA3_512: arch_sha3_init((struct sha3 *)d, SHA3_512_DIGEST_SIZE); return;
 	case ALGORITHM_MD5:      arch_md5_init((struct md5 *)d);         return;
+	case ALGORITHM_SM3:      arch_sm3_init((struct sm3 *)d);         return;
 	default: return;
 	}
 }
@@ -241,6 +272,7 @@ digest_update(struct digest *d, const u8 *data, unsigned int len)
 	case ALGORITHM_SHA3_384:
 	case ALGORITHM_SHA3_512: arch_sha3_256_update((struct sha3 *)d, data, len);   return;
 	case ALGORITHM_MD5:      arch_md5_update((struct md5 *)d, data, len);         return;
+	case ALGORITHM_SM3:      arch_sm3_update((struct sm3 *)d, data, len);         return;
 	default: return;
 	}
 }
@@ -259,6 +291,7 @@ digest_final(struct digest *d, u8 *out)
 	case ALGORITHM_SHA3_384:
 	case ALGORITHM_SHA3_512: arch_sha3_256_final((struct sha3 *)d, out);   return;
 	case ALGORITHM_MD5:      arch_md5_final((struct md5 *)d, out);         return;
+	case ALGORITHM_SM3:      arch_sm3_final((struct sm3 *)d, out);         return;
 	default: return;
 	}
 }
@@ -287,7 +320,8 @@ digest_final(struct digest *d, u8 *out)
 
 #define digest_init_ct(_digest, _algo) do { \
 	__label__ _sha1, _sha224, _sha256, _sha384, _sha512, \
-	          _sha3_224, _sha3_256, _sha3_384, _sha3_512, _md5, _undef; \
+	          _sha3_224, _sha3_256, _sha3_384, _sha3_512, _md5, _sm3, \
+	          _undef; \
 	struct digest *_d = (_digest); \
 	enum algorithm_digest _a = (_algo); \
 	STATIC_ARRAY_STREAMLINED(void *, _disp, &&_undef, \
@@ -300,7 +334,8 @@ digest_final(struct digest *d, u8 *out)
 		[ALGORITHM_SHA3_256] = &&_sha3_256, \
 		[ALGORITHM_SHA3_384] = &&_sha3_384, \
 		[ALGORITHM_SHA3_512] = &&_sha3_512, \
-		[ALGORITHM_MD5]      = &&_md5 \
+		[ALGORITHM_MD5]      = &&_md5, \
+		[ALGORITHM_SM3]      = &&_sm3 \
 	); \
 	_d->algo = _a; \
 	goto *ARRAY_STREAMLINED_AT_CT(_disp, _a); \
@@ -314,11 +349,12 @@ digest_final(struct digest *d, u8 *out)
 	_sha3_384: arch_sha3_init((struct sha3 *)_d, SHA3_384_DIGEST_SIZE); break; \
 	_sha3_512: arch_sha3_init((struct sha3 *)_d, SHA3_512_DIGEST_SIZE); break; \
 	_md5:      arch_md5_init((struct md5 *)_d); break; \
+	_sm3:      arch_sm3_init((struct sm3 *)_d); break; \
 	_undef: break; \
 } while (0)
 
 #define digest_update_ct(_digest, _data, _len) do { \
-	__label__ _sha1, _sha256, _sha512, _sha3, _md5, _undef; \
+	__label__ _sha1, _sha256, _sha512, _sha3, _md5, _sm3, _undef; \
 	struct digest *_d = (_digest); \
 	STATIC_ARRAY_STREAMLINED(void *, _disp, &&_undef, \
 		[ALGORITHM_SHA1_160] = &&_sha1, \
@@ -330,7 +366,8 @@ digest_final(struct digest *d, u8 *out)
 		[ALGORITHM_SHA3_256] = &&_sha3, \
 		[ALGORITHM_SHA3_384] = &&_sha3, \
 		[ALGORITHM_SHA3_512] = &&_sha3, \
-		[ALGORITHM_MD5]      = &&_md5 \
+		[ALGORITHM_MD5]      = &&_md5, \
+		[ALGORITHM_SM3]      = &&_sm3 \
 	); \
 	goto *ARRAY_STREAMLINED_AT_CT(_disp, _d->algo); \
 	_sha1:   arch_sha1_160_update((struct sha1 *)_d, (_data), (_len)); break; \
@@ -338,12 +375,13 @@ digest_final(struct digest *d, u8 *out)
 	_sha512: arch_sha2_512_update((struct sha512 *)_d, (_data), (_len)); break; \
 	_sha3:   arch_sha3_256_update((struct sha3 *)_d, (_data), (_len)); break; \
 	_md5:    arch_md5_update((struct md5 *)_d, (_data), (_len)); break; \
+	_sm3:    arch_sm3_update((struct sm3 *)_d, (_data), (_len)); break; \
 	_undef:  break; \
 } while (0)
 
 #define digest_final_ct(_digest, _out) do { \
 	__label__ _sha1, _sha224, _sha256, _sha384, _sha512, _sha3, _md5, \
-	          _undef; \
+	          _sm3, _undef; \
 	struct digest *_d = (_digest); \
 	u8 *_o = (_out); \
 	STATIC_ARRAY_STREAMLINED(void *, _disp, &&_undef, \
@@ -356,7 +394,8 @@ digest_final(struct digest *d, u8 *out)
 		[ALGORITHM_SHA3_256] = &&_sha3, \
 		[ALGORITHM_SHA3_384] = &&_sha3, \
 		[ALGORITHM_SHA3_512] = &&_sha3, \
-		[ALGORITHM_MD5]      = &&_md5 \
+		[ALGORITHM_MD5]      = &&_md5, \
+		[ALGORITHM_SM3]      = &&_sm3 \
 	); \
 	goto *ARRAY_STREAMLINED_AT_CT(_disp, _d->algo); \
 	_sha1:   arch_sha1_160_final((struct sha1 *)_d, _o); break; \
@@ -366,6 +405,7 @@ digest_final(struct digest *d, u8 *out)
 	_sha512: arch_sha2_512_final((struct sha512 *)_d, _o); break; \
 	_sha3:   arch_sha3_256_final((struct sha3 *)_d, _o); break; \
 	_md5:    arch_md5_final((struct md5 *)_d, _o); break; \
+	_sm3:    arch_sm3_final((struct sm3 *)_d, _o); break; \
 	_undef:  break; \
 } while (0)
 

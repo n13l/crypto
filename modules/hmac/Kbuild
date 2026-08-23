@@ -9,3 +9,6 @@ obj-$(CONFIG_CRYPTO_HMAC_SHA3_DYN) += sha3/
 
 obj-$(CONFIG_CRYPTO_HMAC_MD5) += md5/
 obj-$(CONFIG_CRYPTO_HMAC_MD5_DYN) += md5/
+
+obj-$(CONFIG_CRYPTO_HMAC_SM3) += sm3/
+obj-$(CONFIG_CRYPTO_HMAC_SM3_DYN) += sm3/

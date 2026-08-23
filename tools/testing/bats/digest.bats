@@ -26,7 +26,18 @@ setup_file() {
     [ -n "${DIGEST_BIN}" ] || skip "digest binary not built (run: make test)"
     run "${DIGEST_BIN}"
     [ "${status}" -eq 0 ]
-    [[ "${output}" == "sha3-256: ok" ]]
+    [[ "${output}" == *"sha3-256: ok"* ]]
+}
+
+# SM3 (GB/T 32905) is off in every default build and the tool says so with a
+# "skip" line rather than a failure; where it is configured (configs/sm.config
+# in un) the "abc" vector has to come out right.
+@test "digest: standalone sm3" {
+    [ -n "${DIGEST_BIN}" ] || skip "digest binary not built (run: make test)"
+    run "${DIGEST_BIN}"
+    [ "${status}" -eq 0 ]
+    [[ "${output}" != *"sm3: skip"* ]] || skip "requires CONFIG_CRYPTO_SM3=y"
+    [[ "${output}" == *"sm3: ok"* ]]
 }
 
 @test "digest: sha3-256 empty vs openssl" {

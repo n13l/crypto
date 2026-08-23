@@ -173,6 +173,15 @@ void crypto_cipher_enum(fn_cipher_enum fn);
 #ifdef CONFIG_CRYPTO_CIPHER_RC4
 #include <modules/cipher/rc4/built-in.h>
 #endif
+#ifdef CONFIG_CRYPTO_CIPHER_SM4
+#include <modules/cipher/sm4/built-in.h>
+#endif
+#ifdef CONFIG_CRYPTO_CIPHER_ARIA
+#include <modules/cipher/aria/built-in.h>
+#endif
+#ifdef CONFIG_CRYPTO_CIPHER_CAMELLIA
+#include <modules/cipher/camellia/built-in.h>
+#endif
 #undef __CRYPTO_CIPHER_BUILT_IN_READY__
 #endif
 

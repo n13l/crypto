@@ -31,6 +31,13 @@ setup_file() {
     [[ "${output}" == *"aes-256-gcm: ok"* ]]
     [[ "${output}" == *"aes-128-cbc: ok"* ]]
     [[ "${output}" == *"chacha20-poly1305: ok"* ]]
+    # SM4-GCM and SM4-CCM (RFC 8998 Appendix A) report only where SM4 is
+    # configured in; a line that is there has to say ok
+    [[ "${output}" != *"sm4-gcm:"* ]] || [[ "${output}" == *"sm4-gcm: ok"* ]]
+    [[ "${output}" != *"sm4-ccm:"* ]] || [[ "${output}" == *"sm4-ccm: ok"* ]]
+    # ...and ARIA (RFC 5794) and Camellia (RFC 3713), the same way
+    [[ "${output}" != *"aria:"* ]] || [[ "${output}" == *"aria: ok"* ]]
+    [[ "${output}" != *"camellia:"* ]] || [[ "${output}" == *"camellia: ok"* ]]
     [[ "${output}" != *"FAIL"* ]]
 }
 
