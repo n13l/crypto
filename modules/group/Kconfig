@@ -1,7 +1,5 @@
-menu "TLS key-exchange groups (ECC / PQ)"
+menu "Key Exchange Groups (ECC / FFDHE / PQ)"
 
-#
-# TLS supported groups as per-group modules, following the digest subsystem's
 # layout: a portable generic-C fallback plus an aws-lc accelerated backend
 # (s2n-bignum assembly compiled directly, no OpenSSL/libcrypto). A separate
 # identification module registers metadata for the groups that do not yet have
