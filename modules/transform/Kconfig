@@ -6,9 +6,19 @@ menu "Transforms (encodings, formats)"
 # derives, protects or verifies anything.
 #
 
+#
+# CRYPTO_TRANSFORM_KEYLOG deliberately declares no default, for the reason
+# Kconfig.crypto gives for CRYPTO_VERIFIED: a bool without one is n, which is
+# what crypto standalone wants, and leaving it absent is what lets an embedding
+# package state its own policy. Here the reason is not taste but the include
+# graph — keylog.h is written against <modules/net/tls/bounds.h> and
+# <modules/net/tls/protocol.h>, and those live in the tree that embeds this
+# package, not in it. Standalone there is no net/tls to include, so a default y
+# breaks `make defconfig && make`; un, which has one, declares "default y"
+# before its "source $CRYPTO_DIR/modules/Kconfig" line and gets it.
+#
 config CRYPTO_TRANSFORM_KEYLOG
 	bool "SSLKEYLOGFILE key log (draft-ietf-tls-keylogfile-05)"
-	default y
 	help
 	  Parse the SSLKEYLOGFILE format into one global, read-only hash table
 	  keyed by the 32-byte ClientHello Random — the cnonce a TLS decoder
