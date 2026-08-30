@@ -14,7 +14,19 @@
 #define SHA1_MSG_SIZE 20
 #define SHA1_BLK_SIZE 64
 
-struct sha1 {
+/*
+ * The caller's type, and this backend's working state.
+ *
+ * They are two names for one block of memory: struct sha1 is what callers
+ * embed and what the entry points below take, and struct sha1_ctx is the shape
+ * this file reads it in. sha1/built-in.h defines the first, mirroring the
+ * second field for field, and that is the arrangement sha2 (sha256_ctx) and
+ * sha3 (struct sha3_ctx) already use — it is what lets this file be compiled
+ * on its own under CONFIG_CC_OPTIMIZE_FOR_SIZE rather than only included.
+ */
+struct sha1;
+
+struct sha1_ctx {
 	u32 h0,h1,h2,h3,h4;
 	u32 nblocks;
 	u8 buf[SHA1_BLK_SIZE];
@@ -25,7 +37,7 @@ struct sha1 {
 SHA1_SCOPE void
 sha1_init(struct sha1 *ctx)
 {
-	struct sha1 *sha1 = (struct sha1*)ctx;
+	struct sha1_ctx *sha1 = (struct sha1_ctx *)ctx;
 
 	sha1->h0 = 0x67452301;
 	sha1->h1 = 0xefcdab89;
@@ -37,7 +49,7 @@ sha1_init(struct sha1 *ctx)
 }
 
 static void
-sha1_transform(struct sha1 *sha1, const u8 *data)
+sha1_transform(struct sha1_ctx *sha1, const u8 *data)
 {
 	u32 a,b,c,d,e,tm;
 	u32 x[16];
@@ -167,7 +179,7 @@ sha1_transform(struct sha1 *sha1, const u8 *data)
 SHA1_SCOPE void
 sha1_update(struct sha1 *ctx, const u8 *buf, unsigned int len)
 {
-	struct sha1 *sha1 = (struct sha1*)ctx;
+	struct sha1_ctx *sha1 = (struct sha1_ctx *)ctx;
 
 	if (sha1->count == 64) {
 		sha1_transform( sha1, sha1->buf );
@@ -201,7 +213,7 @@ sha1_update(struct sha1 *ctx, const u8 *buf, unsigned int len)
 SHA1_SCOPE void
 sha1_final(struct sha1 *ctx, u8 *digest)
 {
-	struct sha1 *sha1 = (struct sha1*)ctx;
+	struct sha1_ctx *sha1 = (struct sha1_ctx *)ctx;
 
 	u8 *p;
 
@@ -256,7 +268,7 @@ sha1_final(struct sha1 *ctx, u8 *digest)
 SHA1_SCOPE void
 sha1_hash(const u8 *buf, unsigned int len, u8 *out)
 {
-	struct sha1 sha1;
+	struct sha1_ctx sha1;
 	sha1_init((struct sha1 *)&sha1);
 	sha1_update((struct sha1*)&sha1, buf, len);
 	sha1_final((struct sha1 *)&sha1, out);
