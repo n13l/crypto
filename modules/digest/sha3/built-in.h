@@ -22,6 +22,7 @@
 
 struct sha3_ctx;
 
+void sha3_init(struct sha3_ctx *sctx, unsigned int digest_sz);
 void sha3_224_init(struct sha3_ctx *sctx);
 void sha3_256_init(struct sha3_ctx *sctx);
 void sha3_384_init(struct sha3_ctx *sctx);
@@ -67,9 +68,14 @@ arch_sha3_256_update(struct sha3 *s, const u8 *d, unsigned int l)
 static inline void
 arch_sha3_256_final(struct sha3 *s, u8 *out)
 {
-	struct sha3_ctx *c = (struct sha3_ctx *)s;
-	c->sha = out;
-	sha3_final(c);
+	/*
+	 * Through the public type, which mirrors the backend's working state
+	 * field for field (see above): struct sha3_ctx is complete here only
+	 * where sha3.c has been included, and under CC_OPTIMIZE_FOR_SIZE that
+	 * file is compiled on its own and this is a forward declaration.
+	 */
+	s->sha = out;
+	sha3_final((struct sha3_ctx *)s);
 }
 
 #endif
