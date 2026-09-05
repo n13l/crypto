@@ -143,6 +143,8 @@ qpack_evict(struct qpack *q, unsigned int want)
 	}
 }
 
+static int qpack_grow_by(struct qpack *q, unsigned int live, unsigned int need);
+
 static int
 qpack_insert(struct qpack *q, const u8 *name, unsigned int name_len,
              const u8 *value, unsigned int value_len)
@@ -155,15 +157,23 @@ qpack_insert(struct qpack *q, const u8 *name, unsigned int name_len,
 		return QPACK_E_ENTRY;
 	qpack_evict(q, q->cap - size);
 
-	if (q->head + need > q->size) {
+	if (q->head + need > q->size || q->count + 1 > q->nent) {
 		unsigned int live = q->head - q->tail, i;
 
-		if (live)
+		if (live + need > q->size || q->count + 1 > q->nent) {
+			int rc = qpack_grow_by(q, live, need);
+
+			if (rc != QPACK_OK)
+				return rc;
+		} else if (live) {
 			memmove(q->buf, q->buf + q->tail, live);
-		for (i = 0; i < q->count; i++)
-			q->ent[(q->first + i) % q->nent].off -= q->tail;
-		q->tail = 0;
-		q->head = live;
+		}
+		if (q->tail) {
+			for (i = 0; i < q->count; i++)
+				q->ent[(q->first + i) % q->nent].off -= q->tail;
+			q->tail = 0;
+			q->head = live;
+		}
 	}
 
 	q->first = (q->first + q->nent - 1) % q->nent;
@@ -245,6 +255,84 @@ qpack_reset(struct qpack *q)
 	q->partial = q->recovered = 0;
 	q->inserted = q->evicted = q->join = q->missed = 0;
 	q->known = q->acked = q->cancelled = 0;
+}
+
+void
+qpack_limit(struct qpack *q, unsigned int limit)
+{
+	if (limit > q->size && !q->grow)
+		limit = q->size;
+	q->limit = limit;
+	if (q->cap > limit) {
+		q->cap = limit;
+		qpack_evict(q, q->cap);
+	}
+}
+
+void
+qpack_growable(struct qpack *q, qpack_mem_fn fn, void *arg)
+{
+	q->grow = fn;
+	q->grow_arg = arg;
+}
+
+static void
+qpack_reverse(struct qpack_ent *e, unsigned int lo, unsigned int hi)
+{
+	while (lo + 1 < hi) {
+		struct qpack_ent t = e[lo];
+
+		e[lo++] = e[--hi];
+		e[hi] = t;
+	}
+}
+
+int
+qpack_grow(struct qpack *q, void *mem, unsigned int cap)
+{
+	unsigned int onent = q->nent, nent = cap / 32 + 1, live, i;
+	struct qpack_ent *ent = (struct qpack_ent *)mem;
+	u8 *obuf = (u8 *)mem + (size_t)onent * sizeof(*ent);
+	u8 *buf = (u8 *)mem + (size_t)nent * sizeof(*ent);
+
+	if (!mem || cap < q->size)
+		return -1;
+
+	live = q->head - q->tail;
+	if (live)
+		memmove(buf, obuf + q->tail, live);
+	qpack_reverse(ent, 0, q->first);
+	qpack_reverse(ent, q->first, onent);
+	qpack_reverse(ent, 0, onent);
+	for (i = 0; i < q->count; i++)
+		ent[i].off -= q->tail;
+
+	q->ent = ent;
+	q->nent = nent;
+	q->buf = buf;
+	q->first = 0;
+	q->tail = 0;
+	q->head = live;
+	q->size = cap;
+	return 0;
+}
+
+static int
+qpack_grow_by(struct qpack *q, unsigned int live, unsigned int need)
+{
+	unsigned int want = q->size ? q->size : 32;
+	void *mem;
+
+	if (!q->grow)
+		return QPACK_E_SPACE;
+	while (want < live + need || want < 32u * (q->count + 1))
+		want *= 2;
+	if (want > q->cap)
+		want = q->cap;
+	mem = q->grow(q->grow_arg, q->ent, QPACK_MEM(q->size), QPACK_MEM(want));
+	if (!mem || qpack_grow(q, mem, want))
+		return QPACK_E_SPACE;
+	return QPACK_OK;
 }
 
 void
@@ -954,7 +1042,7 @@ qpack_recovery(struct qpack *q, void *mem, unsigned int size, const void *buf,
 
 	if (w.magic != QPACK_WIRE_MAGIC || w.version != QPACK_WIRE_VERSION ||
 	    w.len > len || w.size > size ||
-	    w.limit > w.size || w.cap > w.limit ||
+	    w.cap > w.size || w.cap > w.limit ||
 	    w.used > w.cap || w.count > w.used / 32 ||
 	    w.evicted > w.inserted ||
 	    w.inserted - w.evicted != (u64)w.count ||

@@ -1,26 +1,3 @@
-/*
- * The MIT License (MIT)                    QPACK field compression (RFC 9204)
- *
- * Copyright (c) 2026                               Daniel Kubec <niel@rtfm.cz>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"),to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 
 #ifndef __CRYPTO_TRANSFORM_QPACK_H__
 #define __CRYPTO_TRANSFORM_QPACK_H__
@@ -53,14 +30,13 @@ __BEGIN_DECLS
 #define QPACK_E_BLOCKED		(-10)
 #define QPACK_E_PREFIX		(-11)
 
-#define QPACK_F_INDEXED		0x01	/* whole field from a table          */
-#define QPACK_F_STATIC		0x02	/* ...the static one (T bit)         */
-#define QPACK_F_POST_BASE	0x04	/* §4.5.3/§4.5.5: indexed past Base  */
-#define QPACK_F_NEVER_INDEXED	0x08	/* the N bit (§7.1 obligations)      */
-#define QPACK_F_HUFFMAN_NAME	0x10	/* §4.1.2: the name arrived coded    */
-#define QPACK_F_HUFFMAN_VALUE	0x20	/* §4.1.2: the value did             */
-#define QPACK_F_UNRESOLVED	0x40	/* a coordinate this partial table
-					 * cannot spell (qpack_partial())    */
+#define QPACK_F_INDEXED		0x01
+#define QPACK_F_STATIC		0x02
+#define QPACK_F_POST_BASE	0x04
+#define QPACK_F_NEVER_INDEXED	0x08
+#define QPACK_F_HUFFMAN_NAME	0x10
+#define QPACK_F_HUFFMAN_VALUE	0x20
+#define QPACK_F_UNRESOLVED	0x40
 #define QPACK_F_NAME_INDEX	0x80
 
 #define QPACK_EMIT_HUFFMAN	0x01
@@ -77,6 +53,8 @@ struct qpack_field {
 };
 
 typedef int (*qpack_fn)(void *ctx, const struct qpack_field *f);
+
+typedef void *(*qpack_mem_fn)(void *arg, void *mem, size_t old, size_t len);
 
 struct qpack_ent {
 	u32	off;
@@ -109,6 +87,8 @@ struct qpack {
 	u64		known;
 	u64		acked;
 	u64		cancelled;
+	qpack_mem_fn	grow;
+	void		*grow_arg;
 };
 
 struct qpack_scratch {
@@ -121,6 +101,12 @@ int qpack_init(struct qpack *q, void *mem, unsigned int cap,
                unsigned int max_capacity);
 
 void qpack_reset(struct qpack *q);
+
+void qpack_limit(struct qpack *q, unsigned int limit);
+
+void qpack_growable(struct qpack *q, qpack_mem_fn fn, void *arg);
+
+int qpack_grow(struct qpack *q, void *mem, unsigned int cap);
 
 void qpack_partial(struct qpack *q);
 
@@ -205,4 +191,4 @@ qpack_inserted(const struct qpack *q)
 
 __END_DECLS
 
-#endif/*__CRYPTO_TRANSFORM_QPACK_H__*/
+#endif
