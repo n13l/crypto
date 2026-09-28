@@ -3,7 +3,8 @@
  * configured HMAC algorithm, computing one MAC per operation over a fixed key,
  * against whichever digest backend the crypto build selected. Only algorithms
  * enabled in the build (CONFIG_CRYPTO_HMAC_*) are compiled in. Run with
- * -b <bytes> for a single fixed size, -t <secs> to change the per-point budget.
+ * -b <bytes> for a single fixed size, -t <secs> to change the per-point budget,
+ * and algorithm names (HMAC-SHA256 ...) to run only those.
  */
 #include <hpc/compiler.h>
 #include <crypto/hmac.h>
@@ -30,6 +31,8 @@ static unsigned int nsizes;
 static void
 run(const char *name, hmac_oneshot fn, unsigned int mac_size)
 {
+	if (!bench_selected(name))
+		return;
 	printf("  %-12s  Supported\n", name);
 	for (unsigned int s = 0; s < nsizes; s++) {
 		u8 mac[64];

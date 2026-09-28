@@ -25,9 +25,11 @@ config CRYPTO_VERIFIED
 	  restricts algorithm choices to aws-lc provided implementations.
 
 	  This is not a performance option, and it is not the trade the two
-	  symbols below it are. Those buy speed by giving up an answer, and a
-	  build that exists to measure throughput turns them off; this one it
-	  leaves on, because there is nothing to give up. The aws-lc
+	  symbols below it are. Those buy speed by giving up an answer, and
+	  even a build that exists to measure throughput leaves them on, so
+	  that what it times is the same open a library's speed command
+	  times; this one it leaves on because there is nothing to give up.
+	  The aws-lc
 	  implementations are the same hand-written assembly as the
 	  alternatives, where the build targets the host CPU the default chains
 	  pin their SHA-NI, AVX2 or ARMv8 variant and verified is as often the
@@ -66,12 +68,22 @@ config CRYPTO_VERIFIED_DECRYPT_AEAD
 	  Check that what came out of an AEAD open is what the sender put in,
 	  and refuse the record when it is not.
 
-	  Opening a record is two jobs and on a modern core they cost about
-	  the same, so saying n — run the keystream, compute no authenticator
-	  — is worth about 1.9x on AES-128-GCM here. ChaCha20-Poly1305 gains
-	  almost nothing, because the fused assembly has no entry point that
-	  skips the tag and declining to verify declines the fused backend
-	  with it.
+	  Opening a record is two jobs, and saying n — run the keystream,
+	  compute no authenticator — drops the second: about 1.9x on
+	  AES-128-GCM on the machine this was written on, 2.8x on an Apple
+	  M-series core where the GHASH half is the slower one, and 6-7x on
+	  AES-CCM, whose CBC-MAC is serial and is most of the open.
+	  ChaCha20-Poly1305 gains about a third, because the fused assembly
+	  has no entry point that skips the tag and declining to verify
+	  declines the fused backend with it.
+
+	  No perf profile says n. A rate without the authenticator compares
+	  with nothing a library's speed command measures — un's
+	  un-perf-tls.sh prints its rows beside this package's own cipher
+	  benchmark, the vendored OpenSSL's `openssl speed` and AWS-LC's
+	  `bssl speed`, and all of those open with the tag — so the saving
+	  is for attributing a measurement to one half of the open, never a
+	  profile's default.
 
 	  This is the AEAD half only. The CBC HMAC suites are not opened by an
 	  AEAD backend at all — the record layer composes and checks that MAC
@@ -103,8 +115,11 @@ config CRYPTO_VERIFIED_DECRYPT_MAC
 
 	  The HMAC is most of the work in a CBC open — SHA-1 or SHA-256 over
 	  the whole record next to an AES-CBC pass over the same bytes — so n
-	  measures about 3-4x on the AES-CBC HMAC suites, the largest single
-	  saving of any of these knobs. It applies to both compositions:
+	  measures about 3-4x on the AES-CBC HMAC suites on the machine this
+	  was written on and 5-7x on an Apple M-series core (SHA-256 to
+	  SHA-384), the largest single saving of any of these knobs. As with
+	  the AEAD symbol, no perf profile says n. It applies to both
+	  compositions:
 	  MAC-then-encrypt, and encrypt-then-MAC (RFC 7366), where the MAC is
 	  over the ciphertext and is otherwise checked before decrypting.
 

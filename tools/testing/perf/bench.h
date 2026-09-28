@@ -4,9 +4,10 @@
  * Every perf tool measures one primitive over a geometric range of data-chunk
  * sizes, from the smallest to the largest, so throughput can be compared across
  * builds (different CONFIG backends / implementations). This header carries the
- * common bits: the size table, option parsing (-b <bytes>, -t <secs>), a
- * monotonic clock, and the table formatting. Each tool supplies the per-chunk
- * operation and the list of algorithms.
+ * common bits: the size table, option parsing (-b <bytes>, -t <secs>, and
+ * algorithm names to run only those), a monotonic clock, and the table
+ * formatting. Each tool supplies the per-chunk operation and the list of
+ * algorithms.
  *
  * Tools link libc (timing + stdio), so they build only under CONFIG_CC_CLIB.
  */
@@ -39,7 +40,29 @@ bench_now(void)
 	return (double)t.tv_sec + (double)t.tv_nsec / 1e9;
 }
 
-/* Parse the options shared by every tool. Unknown args are ignored. */
+/*
+ * Algorithm names given on the command line, when any were: a tool that asks
+ * bench_selected() runs only those and skips the rest, which is how a caller
+ * that wants two numbers out of a sweep of nine gets them in a fifth of the
+ * time. Tools that never ask run everything, names or no names.
+ */
+#define BENCH_MAX_NAMES  32
+static const char *bench_names[BENCH_MAX_NAMES];
+static unsigned int bench_num_names;
+
+static inline int
+bench_selected(const char *name)
+{
+	if (!bench_num_names)
+		return 1;
+	for (unsigned int i = 0; i < bench_num_names; i++)
+		if (!strcmp(bench_names[i], name))
+			return 1;
+	return 0;
+}
+
+/* Parse the options shared by every tool: -b, -t, and bare words as algorithm
+ * names. Unknown options are ignored. */
 static inline void
 bench_parse_args(int argc, char *argv[])
 {
@@ -57,6 +80,9 @@ bench_parse_args(int argc, char *argv[])
 			bench_secs = atof(argv[++i]);
 			if (bench_secs <= 0.0)
 				bench_secs = 0.3;
+		} else if (argv[i][0] != '-' &&
+		           bench_num_names < BENCH_MAX_NAMES) {
+			bench_names[bench_num_names++] = argv[i];
 		}
 	}
 }
