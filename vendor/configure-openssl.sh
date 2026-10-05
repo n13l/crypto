@@ -58,13 +58,33 @@ case "${ARCH}" in
 		;;
 esac
 
-if [ "${PLATFORM}" = "darwin" ]; then
+# PLATFORM is kbuild's spelling (scripts/host_from_sys.sh): linux, macos,
+# windows. It used to be compared against "darwin" here, which kbuild never
+# says, so a macOS build was configured as Linux.
+case "${PLATFORM}" in
+macos|darwin)
 	case "${ARCH}" in
 		arm64) ossl_target="darwin64-arm64-cc" ;;
 		x86_64|x86) ossl_target="darwin64-x86_64-cc" ;;
 		*) ossl_target="darwin64-arm64-cc" ;;
 	esac
-fi
+	;;
+windows)
+	case "${ARCH}" in
+		arm64) ossl_target="mingwarm64" ;;
+		i386) ossl_target="mingw" ;;
+		*) ossl_target="mingw64" ;;
+	esac
+	;;
+esac
+
+# The perlasm flavour of the one script run by hand below; the rest are made
+# by OpenSSL's own Makefile, which knows its target's flavour itself.
+case "${PLATFORM}" in
+macos|darwin)	perlasm_flavour="macosx" ;;
+windows)	perlasm_flavour="mingw64" ;;
+*)		perlasm_flavour="elf" ;;
+esac
 
 OSSL_ARGS=""
 
@@ -92,8 +112,23 @@ if [ "${CONFIG_OPENSSL_FIPS}" = "y" ]; then
 	OSSL_ARGS="${OSSL_ARGS} enable-fips"
 fi
 
-if [ -n "${CROSS_COMPILE}" ]; then
+# The toolchain. kbuild exports CC, AR, NM and CPP already prefixed
+# ($(CROSS_COMPILE)gcc, ...), and OpenSSL prepends --cross-compile-prefix to
+# each tool it is given — so handing it both made
+# x86_64-linux-gnu-x86_64-linux-gnu-gcc. With a prefix, CC goes in bare, the
+# rest are left for OpenSSL to name, and it adds the prefix to all of them once.
+# Under LLVM=1 there is no prefix to add: CC is clang with --target in it
+# (scripts/Makefile.target), and the binutils are LLVM's, named outright.
+if [ -n "${LLVM}" ]; then
+	unset CPP LD AS
+	export CC AR NM
+	export RANLIB="${AR%llvm-ar*}llvm-ranlib${AR#*llvm-ar}"
+	[ "${PLATFORM}" = "windows" ] && \
+		export RC="${AR%llvm-ar*}llvm-rc${AR#*llvm-ar}"
+elif [ -n "${CROSS_COMPILE}" ]; then
 	OSSL_ARGS="${OSSL_ARGS} --cross-compile-prefix=${CROSS_COMPILE}"
+	unset AR NM RANLIB RC CPP LD AS
+	export CC="${CC#${CROSS_COMPILE}}"
 fi
 
 if [ -n "${CONFIG_OPENSSL_EXTRA_ARGS}" ]; then
@@ -107,7 +142,14 @@ OSSL_ARGS="${OSSL_ARGS} --openssldir=${OPENSSL_OUT}/ssl"
 mkdir -p "${OPENSSL_OUT}"
 
 stamp="${OPENSSL_OUT}/.configured"
-args_hash=$(echo "${ossl_target} ${OSSL_ARGS}" | sha1sum | cut -d' ' -f1)
+# The toolchain is part of the recipe in a cross or LLVM build, where it is
+# what changes between one configure and the next; a native build hashes what
+# it always has, so an existing tree is not reconfigured for nothing.
+recipe="${ossl_target} ${OSSL_ARGS}"
+if [ -n "${LLVM}${CROSS_COMPILE}" ]; then
+	recipe="${recipe} CC=${CC} AR=${AR} NM=${NM} RANLIB=${RANLIB}"
+fi
+args_hash=$(echo "${recipe}" | sha1sum | cut -d' ' -f1)
 
 if [ -f "${stamp}" ] && [ -f "${OPENSSL_OUT}/Makefile" ] && \
    [ "$(cat "${stamp}")" = "${args_hash}" ]; then
@@ -137,7 +179,8 @@ if [ ! -f "${asm_stamp}" ] || [ "${stamp}" -nt "${asm_stamp}" ]; then
 				crypto/sha/sha256-x86_64.s \
 				crypto/sha/sha512-x86_64.s \
 				2>&1 | if [ "${KBUILD_VERBOSE}" != "1" ]; then cat > /dev/null; else cat; fi
-			perl "${OPENSSL_SRC}/crypto/sha/asm/keccak1600-avx2.pl" elf \
+			perl "${OPENSSL_SRC}/crypto/sha/asm/keccak1600-avx2.pl" \
+				"${perlasm_flavour}" \
 				crypto/sha/keccak1600-avx2.S \
 				2>&1 | if [ "${KBUILD_VERBOSE}" != "1" ]; then cat > /dev/null; else cat; fi
 			;;
